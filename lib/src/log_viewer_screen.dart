@@ -4,6 +4,10 @@ import 'package:share_plus/share_plus.dart';
 
 import 'debug_logger.dart';
 import 'log_level.dart';
+import 'widgets/log_search_bar.dart';
+import 'widgets/log_menu_row.dart';
+import 'widgets/log_empty_state.dart';
+import 'widgets/log_share_confirm_sheet.dart';
 
 /// Plain, zero-dependency log viewer.
 ///
@@ -118,7 +122,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => const _ShareConfirmSheet(),
+      builder: (_) => const LogShareConfirmSheet(),
     );
     if (ok != true || !mounted) return;
 
@@ -189,6 +193,10 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               switch (action) {
                 case _LogAction.toggleLogging:
                   _toggleLogging();
+                case _LogAction.toggleLatestFirst:
+                  _toggleLatestFirst();
+                case _LogAction.toggleAutoScroll:
+                  _toggleAutoScroll();
                 case _LogAction.refresh:
                   _refresh();
                 case _LogAction.copyAll:
@@ -206,7 +214,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
             itemBuilder: (_) => [
               PopupMenuItem(
                 value: _LogAction.toggleLogging,
-                child: _MenuRow(
+                child: LogMenuRow(
                   DebugLogger.loggingActive
                       ? Icons.pause_circle_outline
                       : Icons.play_circle_outline,
@@ -215,37 +223,58 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               ),
               PopupMenuItem(
                 value: _LogAction.refresh,
-                child: const _MenuRow(Icons.refresh_rounded, 'Refresh'),
+                child: const LogMenuRow(Icons.refresh_rounded, 'Refresh'),
+              ),
+              const PopupMenuDivider(height: 1),
+              PopupMenuItem(
+                value: _LogAction.toggleLatestFirst,
+                child: LogMenuRow(
+                  _latestFirst
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded,
+                  'Latest first',
+                  iconColor: _latestFirst ? Colors.orangeAccent : Colors.white38,
+                ),
+              ),
+              PopupMenuItem(
+                value: _LogAction.toggleAutoScroll,
+                child: LogMenuRow(
+                  _autoScroll
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded,
+                  'Auto-scroll',
+                  iconColor: _autoScroll ? Colors.orangeAccent : Colors.white38,
+                ),
               ),
               const PopupMenuDivider(height: 1),
               PopupMenuItem(
                 value: _LogAction.copyAll,
                 enabled: _hasLogs,
-                child: const _MenuRow(Icons.copy_all_outlined, 'Copy all logs'),
+                child: const LogMenuRow(Icons.copy_all_outlined, 'Copy all logs'),
               ),
               PopupMenuItem(
                 value: _LogAction.copyVisible,
                 enabled: visibleLines.isNotEmpty,
                 child:
-                    const _MenuRow(Icons.content_copy_rounded, 'Copy visible'),
+                    const LogMenuRow(Icons.content_copy_rounded, 'Copy visible'),
               ),
               const PopupMenuDivider(height: 1),
               PopupMenuItem(
                 value: _LogAction.export,
                 enabled: _hasLogs,
-                child: const _MenuRow(Icons.ios_share_outlined, 'Export logs'),
+                child: const LogMenuRow(Icons.ios_share_outlined, 'Export logs'),
               ),
               PopupMenuItem(
                 value: _LogAction.shareAndClear,
                 enabled: _hasLogs,
-                child: const _MenuRow(
+                child: const LogMenuRow(
                     Icons.delete_sweep_outlined, 'Share & clear'),
               ),
               PopupMenuItem(
                 value: _LogAction.clear,
                 enabled: _hasLogs,
                 child:
-                    const _MenuRow(Icons.delete_outline_rounded, 'Clear logs'),
+                    const LogMenuRow(Icons.delete_outline_rounded, 'Clear logs'),
               ),
             ],
           ),
@@ -254,11 +283,9 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
       ),
       body: Column(
         children: [
-          _SearchBar(
+          LogSearchBar(
             controller: _searchController,
             query: _query,
-            latestFirst: _latestFirst,
-            autoScroll: _autoScroll,
             activeFilters: _activeFilters,
             onToggleFilter: (level) {
               setState(() {
@@ -279,8 +306,6 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               setState(() => _query = '');
               _scheduleAutoScroll();
             },
-            onToggleLatestFirst: _toggleLatestFirst,
-            onToggleAutoScroll: _toggleAutoScroll,
           ),
           Expanded(child: _buildBody(visibleLines)),
         ],
@@ -295,10 +320,10 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
       );
     }
     if (!_hasLogs) {
-      return _EmptyState(text: _cleared ? 'Logs cleared.' : 'No logs yet.');
+      return LogEmptyState(text: _cleared ? 'Logs cleared.' : 'No logs yet.');
     }
     if (visibleLines.isEmpty) {
-      return const _EmptyState(text: 'No matching logs.');
+      return const LogEmptyState(text: 'No matching logs.');
     }
 
     return Scrollbar(
@@ -396,6 +421,8 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
 
 enum _LogAction {
   toggleLogging,
+  toggleLatestFirst,
+  toggleAutoScroll,
   refresh,
   copyAll,
   export,
@@ -404,293 +431,3 @@ enum _LogAction {
   clear,
 }
 
-class _SearchBar extends StatelessWidget {
-  const _SearchBar({
-    required this.controller,
-    required this.query,
-    required this.latestFirst,
-    required this.autoScroll,
-    required this.activeFilters,
-    required this.onToggleFilter,
-    required this.onChanged,
-    required this.onClear,
-    required this.onToggleLatestFirst,
-    required this.onToggleAutoScroll,
-  });
-
-  final TextEditingController controller;
-  final String query;
-  final bool latestFirst;
-  final bool autoScroll;
-  final Set<LogLevel> activeFilters;
-  final ValueChanged<LogLevel> onToggleFilter;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-  final VoidCallback onToggleLatestFirst;
-  final VoidCallback onToggleAutoScroll;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF141414),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 36,
-              child: TextField(
-                controller: controller,
-                onChanged: onChanged,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-                cursorColor: Colors.orangeAccent,
-                decoration: InputDecoration(
-                  hintText: 'Search logs',
-                  hintStyle: const TextStyle(color: Colors.white30),
-                  prefixIcon: const Icon(
-                    Icons.search_rounded,
-                    color: Colors.white38,
-                    size: 18,
-                  ),
-                  suffixIcon: query.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close_rounded, size: 16),
-                          color: Colors.white38,
-                          tooltip: 'Clear search',
-                          onPressed: onClear,
-                        ),
-                  filled: true,
-                  fillColor: const Color(0xFF202020),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          _ToggleIconButton(
-            active: latestFirst,
-            icon: Icons.vertical_align_top_rounded,
-            tooltip: latestFirst ? 'Showing latest first' : 'Show latest first',
-            onPressed: onToggleLatestFirst,
-          ),
-          const SizedBox(width: 4),
-          _ToggleIconButton(
-            active: autoScroll,
-            icon: Icons.low_priority_rounded,
-            tooltip:
-                autoScroll ? 'Auto-scroll enabled' : 'Auto-scroll disabled',
-            onPressed: onToggleAutoScroll,
-          ),
-          const SizedBox(width: 4),
-          PopupMenuButton<LogLevel>(
-            tooltip: 'Filter logs by level',
-            padding: EdgeInsets.zero,
-            icon: Icon(
-              Icons.filter_list_rounded,
-              size: 19,
-              color: activeFilters.length < LogLevel.values.length
-                  ? Colors.orangeAccent
-                  : Colors.white38,
-            ),
-            color: const Color(0xFF1A1A1A),
-            onSelected: onToggleFilter,
-            itemBuilder: (_) => LogLevel.values.map((level) {
-              final active = activeFilters.contains(level);
-              return PopupMenuItem<LogLevel>(
-                value: level,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      active
-                          ? Icons.check_box_rounded
-                          : Icons.check_box_outline_blank_rounded,
-                      color: active ? Colors.orangeAccent : Colors.white38,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: level.chipColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      level.label,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleIconButton extends StatelessWidget {
-  const _ToggleIconButton({
-    required this.active,
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final bool active;
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      visualDensity: VisualDensity.compact,
-      icon: Icon(icon, size: 19),
-      color: active ? Colors.orangeAccent : Colors.white38,
-      tooltip: tooltip,
-      onPressed: onPressed,
-    );
-  }
-}
-
-class _MenuRow extends StatelessWidget {
-  const _MenuRow(this.icon, this.label);
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white70, size: 18),
-        const SizedBox(width: 10),
-        Text(label, style: const TextStyle(color: Colors.white)),
-      ],
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.article_outlined,
-            color: Colors.white12,
-            size: 48,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white30,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ShareConfirmSheet extends StatelessWidget {
-  const _ShareConfirmSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Icon(
-            Icons.delete_sweep_outlined,
-            color: Colors.orangeAccent,
-            size: 36,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Share & Clear Logs',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'The log file will be shared, then permanently '
-            'deleted from this device. Use export if you want to keep it.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 28),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white54,
-                    side: const BorderSide(color: Colors.white12),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Share & Clear',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
