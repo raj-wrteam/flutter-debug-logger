@@ -24,13 +24,14 @@ class DebugLogViewerScreen extends StatefulWidget {
 class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
-  final Set<LogLevel> _activeFilters = {...LogLevel.values};
+
+  static final Set<LogLevel> _activeFilters = {...LogLevel.values};
+  static bool _latestFirst = false;
+  static bool _autoScroll = true;
 
   List<String> _lines = const <String>[];
   bool _loading = true;
   bool _cleared = false;
-  bool _latestFirst = false;
-  bool _autoScroll = true;
   String _query = '';
 
   @override
@@ -99,8 +100,8 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
     await _copyText(_lines.join('\n'), 'Copied all logs');
   }
 
-  Future<void> _copyVisible() async {
-    await _copyText(_visibleLines.join('\n'), 'Copied visible logs');
+  Future<void> _copyFiltered() async {
+    await _copyText(_visibleLines.join('\n'), 'Copied filtered logs');
   }
 
   Future<void> _exportLogs() async {
@@ -141,7 +142,9 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
 
   void _toggleAutoScroll() {
     setState(() => _autoScroll = !_autoScroll);
-    _scheduleAutoScroll(force: true);
+    if (_autoScroll) {
+      _scheduleAutoScroll(force: true);
+    }
   }
 
   void _scheduleAutoScroll({bool force = false}) {
@@ -201,8 +204,8 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
                   _refresh();
                 case _LogAction.copyAll:
                   _copyAll();
-                case _LogAction.copyVisible:
-                  _copyVisible();
+                case _LogAction.copyFiltered:
+                  _copyFiltered();
                 case _LogAction.export:
                   _exportLogs();
                 case _LogAction.shareAndClear:
@@ -233,7 +236,8 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
                       ? Icons.check_box_rounded
                       : Icons.check_box_outline_blank_rounded,
                   'Latest first',
-                  iconColor: _latestFirst ? Colors.orangeAccent : Colors.white38,
+                  iconColor:
+                      _latestFirst ? Colors.orangeAccent : Colors.white38,
                 ),
               ),
               PopupMenuItem(
@@ -250,19 +254,21 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               PopupMenuItem(
                 value: _LogAction.copyAll,
                 enabled: _hasLogs,
-                child: const LogMenuRow(Icons.copy_all_outlined, 'Copy all logs'),
+                child:
+                    const LogMenuRow(Icons.copy_all_outlined, 'Copy all logs'),
               ),
               PopupMenuItem(
-                value: _LogAction.copyVisible,
+                value: _LogAction.copyFiltered,
                 enabled: visibleLines.isNotEmpty,
-                child:
-                    const LogMenuRow(Icons.content_copy_rounded, 'Copy visible'),
+                child: const LogMenuRow(
+                    Icons.content_copy_rounded, 'Copy filtered'),
               ),
               const PopupMenuDivider(height: 1),
               PopupMenuItem(
                 value: _LogAction.export,
                 enabled: _hasLogs,
-                child: const LogMenuRow(Icons.ios_share_outlined, 'Export logs'),
+                child:
+                    const LogMenuRow(Icons.ios_share_outlined, 'Export logs'),
               ),
               PopupMenuItem(
                 value: _LogAction.shareAndClear,
@@ -273,8 +279,8 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               PopupMenuItem(
                 value: _LogAction.clear,
                 enabled: _hasLogs,
-                child:
-                    const LogMenuRow(Icons.delete_outline_rounded, 'Clear logs'),
+                child: const LogMenuRow(
+                    Icons.delete_outline_rounded, 'Clear logs'),
               ),
             ],
           ),
@@ -426,8 +432,7 @@ enum _LogAction {
   refresh,
   copyAll,
   export,
-  copyVisible,
+  copyFiltered,
   shareAndClear,
   clear,
 }
-
