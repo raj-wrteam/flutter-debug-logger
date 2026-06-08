@@ -31,6 +31,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   static bool _autoScroll = true;
 
   List<String> _lines = const <String>[];
+  Map<String, int> _sessionNumbers = const <String, int>{};
   bool _loading = true;
   bool _cleared = false;
   String _query = '';
@@ -51,8 +52,18 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   Future<void> _load() async {
     final lines = await DebugLogger.readLogLines();
     if (!mounted) return;
+    final sessionNumbers = <String, int>{};
+    var sessionCount = 0;
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (line.contains('SESSION START')) {
+        sessionCount++;
+        sessionNumbers[line] = sessionCount;
+      }
+    }
     setState(() {
       _lines = lines;
+      _sessionNumbers = sessionNumbers;
       _loading = false;
       _cleared = false;
     });
@@ -80,6 +91,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
     if (!mounted) return;
     setState(() {
       _lines = const <String>[];
+      _sessionNumbers = const <String, int>{};
       _cleared = true;
     });
   }
@@ -370,6 +382,9 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
           itemCount: visibleLines.length,
           itemBuilder: (context, index) {
             final line = visibleLines[index];
+            if (line.contains('SESSION START')) {
+              return _buildSessionDivider(line);
+            }
             return Text.rich(
               _buildLineSpan(line),
               style: _mono,
@@ -381,10 +396,96 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
     );
   }
 
+  String? _parseSessionTimestamp(String line) {
+    final pattern = RegExp(r'SESSION START\s+(.+)');
+    final match = pattern.firstMatch(line);
+    if (match != null) {
+      return match.group(1)?.trim();
+    }
+    return null;
+  }
+
+  String _formatDateTime(DateTime dt) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final year = dt.year;
+    final month = months[dt.month - 1];
+    final day = dt.day.toString().padLeft(2, '0');
+
+    final hourNum = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final second = dt.second.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+
+    return '$month $day, $year • $hourNum:$minute:$second $ampm';
+  }
+
+  Widget _buildSessionDivider(String line) {
+    final timestampStr = _parseSessionTimestamp(line);
+    String displayStr = line.trim();
+    if (timestampStr != null) {
+      final dt = DateTime.tryParse(timestampStr);
+      if (dt != null) {
+        final formattedDate = _formatDateTime(dt);
+        final sessionNum = _sessionNumbers[line];
+        if (sessionNum != null) {
+          displayStr = 'SESSION #$sessionNum  •  $formattedDate';
+        } else {
+          displayStr = 'SESSION START  •  $formattedDate';
+        }
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Divider(
+              color: Colors.white12,
+              thickness: 1,
+              endIndent: 12,
+            ),
+          ),
+          Text(
+            displayStr,
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFFFFB74D),
+              letterSpacing: 0.8,
+            ),
+          ),
+          const Expanded(
+            child: Divider(
+              color: Colors.white12,
+              thickness: 1,
+              indent: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // -- Filtering/search ------------------------------------------------------
 
   bool _linePassesFilter(String line) {
     if (line.trim().isEmpty) return true;
+    if (line.contains('====')) return false;
     final level = LogLevel.fromLine(line);
     final levelPasses = level == null
         ? _activeFilters.contains(LogLevel.info)
