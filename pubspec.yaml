@@ -1,0 +1,23 @@
+name: flutter_debug_logger
+description: >
+  A zero-config floating debug logger for Flutter apps.
+  Activated at build time via --dart-define=FLUTTER_DEBUG_LOGGER=true.
+  Provides a persistent FAB that opens a full log viewer with share support.
+version: 1.0.0
+homepage: https://github.com/yourorg/flutter_debug_logger
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.0
+  dio: ^5.9.2
+  share_plus: ^12.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
