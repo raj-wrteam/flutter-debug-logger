@@ -181,40 +181,22 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              DebugLogger.loggingActive
-                  ? Icons.pause_circle_outline
-                  : Icons.play_circle_outline,
-              size: 20,
-            ),
-            tooltip:
-                DebugLogger.loggingActive ? 'Stop logging' : 'Start logging',
-            onPressed: _toggleLogging,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, size: 20),
-            tooltip: 'Refresh',
-            onPressed: _refresh,
-          ),
-          IconButton(
-            icon: const Icon(Icons.copy_all_outlined, size: 20),
-            tooltip: 'Copy all logs',
-            onPressed: _hasLogs ? _copyAll : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.ios_share_outlined, size: 20),
-            tooltip: 'Export logs',
-            onPressed: _hasLogs ? _exportLogs : null,
-          ),
           PopupMenuButton<_LogAction>(
-            tooltip: 'More',
+            tooltip: 'Actions',
             icon: const Icon(Icons.more_vert_rounded, size: 20),
             color: const Color(0xFF1A1A1A),
             onSelected: (action) {
               switch (action) {
+                case _LogAction.toggleLogging:
+                  _toggleLogging();
+                case _LogAction.refresh:
+                  _refresh();
+                case _LogAction.copyAll:
+                  _copyAll();
                 case _LogAction.copyVisible:
                   _copyVisible();
+                case _LogAction.export:
+                  _exportLogs();
                 case _LogAction.shareAndClear:
                   _shareAndClear();
                 case _LogAction.clear:
@@ -223,10 +205,35 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
             },
             itemBuilder: (_) => [
               PopupMenuItem(
+                value: _LogAction.toggleLogging,
+                child: _MenuRow(
+                  DebugLogger.loggingActive
+                      ? Icons.pause_circle_outline
+                      : Icons.play_circle_outline,
+                  DebugLogger.loggingActive ? 'Stop logging' : 'Start logging',
+                ),
+              ),
+              PopupMenuItem(
+                value: _LogAction.refresh,
+                child: const _MenuRow(Icons.refresh_rounded, 'Refresh'),
+              ),
+              const PopupMenuDivider(height: 1),
+              PopupMenuItem(
+                value: _LogAction.copyAll,
+                enabled: _hasLogs,
+                child: const _MenuRow(Icons.copy_all_outlined, 'Copy all logs'),
+              ),
+              PopupMenuItem(
                 value: _LogAction.copyVisible,
                 enabled: visibleLines.isNotEmpty,
                 child:
                     const _MenuRow(Icons.content_copy_rounded, 'Copy visible'),
+              ),
+              const PopupMenuDivider(height: 1),
+              PopupMenuItem(
+                value: _LogAction.export,
+                enabled: _hasLogs,
+                child: const _MenuRow(Icons.ios_share_outlined, 'Export logs'),
               ),
               PopupMenuItem(
                 value: _LogAction.shareAndClear,
@@ -252,6 +259,17 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
             query: _query,
             latestFirst: _latestFirst,
             autoScroll: _autoScroll,
+            activeFilters: _activeFilters,
+            onToggleFilter: (level) {
+              setState(() {
+                if (_activeFilters.contains(level)) {
+                  if (_activeFilters.length > 1) _activeFilters.remove(level);
+                } else {
+                  _activeFilters.add(level);
+                }
+              });
+              _scheduleAutoScroll();
+            },
             onChanged: (value) {
               setState(() => _query = value);
               _scheduleAutoScroll();
@@ -263,19 +281,6 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
             },
             onToggleLatestFirst: _toggleLatestFirst,
             onToggleAutoScroll: _toggleAutoScroll,
-          ),
-          _FilterBar(
-            activeFilters: _activeFilters,
-            onToggle: (level) {
-              setState(() {
-                if (_activeFilters.contains(level)) {
-                  if (_activeFilters.length > 1) _activeFilters.remove(level);
-                } else {
-                  _activeFilters.add(level);
-                }
-              });
-              _scheduleAutoScroll();
-            },
           ),
           Expanded(child: _buildBody(visibleLines)),
         ],
@@ -389,7 +394,15 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   }
 }
 
-enum _LogAction { copyVisible, shareAndClear, clear }
+enum _LogAction {
+  toggleLogging,
+  refresh,
+  copyAll,
+  export,
+  copyVisible,
+  shareAndClear,
+  clear,
+}
 
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
@@ -397,6 +410,8 @@ class _SearchBar extends StatelessWidget {
     required this.query,
     required this.latestFirst,
     required this.autoScroll,
+    required this.activeFilters,
+    required this.onToggleFilter,
     required this.onChanged,
     required this.onClear,
     required this.onToggleLatestFirst,
@@ -407,6 +422,8 @@ class _SearchBar extends StatelessWidget {
   final String query;
   final bool latestFirst;
   final bool autoScroll;
+  final Set<LogLevel> activeFilters;
+  final ValueChanged<LogLevel> onToggleFilter;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
   final VoidCallback onToggleLatestFirst;
@@ -469,6 +486,52 @@ class _SearchBar extends StatelessWidget {
                 autoScroll ? 'Auto-scroll enabled' : 'Auto-scroll disabled',
             onPressed: onToggleAutoScroll,
           ),
+          const SizedBox(width: 4),
+          PopupMenuButton<LogLevel>(
+            tooltip: 'Filter logs by level',
+            padding: EdgeInsets.zero,
+            icon: Icon(
+              Icons.filter_list_rounded,
+              size: 19,
+              color: activeFilters.length < LogLevel.values.length
+                  ? Colors.orangeAccent
+                  : Colors.white38,
+            ),
+            color: const Color(0xFF1A1A1A),
+            onSelected: onToggleFilter,
+            itemBuilder: (_) => LogLevel.values.map((level) {
+              final active = activeFilters.contains(level);
+              return PopupMenuItem<LogLevel>(
+                value: level,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      active
+                          ? Icons.check_box_rounded
+                          : Icons.check_box_outline_blank_rounded,
+                      color: active ? Colors.orangeAccent : Colors.white38,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: level.chipColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      level.label,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
@@ -496,96 +559,6 @@ class _ToggleIconButton extends StatelessWidget {
       color: active ? Colors.orangeAccent : Colors.white38,
       tooltip: tooltip,
       onPressed: onPressed,
-    );
-  }
-}
-
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({
-    required this.activeFilters,
-    required this.onToggle,
-  });
-
-  final Set<LogLevel> activeFilters;
-  final void Function(LogLevel) onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF141414),
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      child: Row(
-        children: [
-          const Text(
-            'Filter:',
-            style: TextStyle(
-              color: Colors.white38,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: LogLevel.values.map((level) {
-                  final active = activeFilters.contains(level);
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: _LevelChip(
-                      level: level,
-                      active: active,
-                      onTap: () => onToggle(level),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LevelChip extends StatelessWidget {
-  const _LevelChip({
-    required this.level,
-    required this.active,
-    required this.onTap,
-  });
-
-  final LogLevel level;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final chipColor = level.chipColor;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color:
-              active ? chipColor.withValues(alpha: 0.18) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active ? chipColor : Colors.white12,
-            width: 1,
-          ),
-        ),
-        child: Text(
-          level.label,
-          style: TextStyle(
-            color: active ? chipColor : Colors.white30,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
     );
   }
 }
