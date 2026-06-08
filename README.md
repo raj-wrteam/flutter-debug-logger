@@ -121,6 +121,7 @@ dio.interceptors.add(
       'authorization',
       'x-api-key',
     ],
+    redactHeadersInCurl: false, // Set to true to redact sensitive headers in cURL logs (Default: false)
   ),
 );
 ```

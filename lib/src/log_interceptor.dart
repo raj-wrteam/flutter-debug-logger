@@ -44,6 +44,12 @@ class FlutterDebugLogInterceptor extends Interceptor {
   /// Header names whose values should be replaced with `<redacted>`.
   final List<String> redactedHeaders;
 
+  /// When `true`, headers specified in [redactedHeaders] will be replaced
+  /// with `<redacted>` in the generated cURL command.
+  ///
+  /// Defaults to `false` so that copy-pasted cURL commands are fully functional.
+  final bool redactHeadersInCurl;
+
   const FlutterDebugLogInterceptor({
     this.tag,
     this.generateCurl = false,
@@ -56,6 +62,7 @@ class FlutterDebugLogInterceptor extends Interceptor {
       'set-cookie',
       'x-api-key',
     ],
+    this.redactHeadersInCurl = false,
   });
 
   String get _prefix => tag != null ? '[$tag]' : '';
@@ -73,7 +80,8 @@ class FlutterDebugLogInterceptor extends Interceptor {
 
     // Headers
     options.headers.forEach((key, dynamic value) {
-      final headerValue = _isRedactedHeader(key) ? '<redacted>' : '$value';
+      final headerValue =
+          (redactHeadersInCurl && _isRedactedHeader(key)) ? '<redacted>' : '$value';
       buf.write(" -H '${_escapeSingle(key)}: ${_escapeSingle(headerValue)}'");
     });
 
