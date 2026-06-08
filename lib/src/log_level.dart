@@ -133,8 +133,27 @@ enum LogTag {
         LogTag.flutterError => const Color(0xFFEF5350), // red
         LogTag.appError => const Color(0xFFEF5350), // red
         LogTag.printLog => const Color(0xFFB0BEC5), // cool-grey
-        LogTag.stackTrace => const Color(0xFF424242), // dim grey
+        LogTag.stackTrace => const Color(0xFFB0BEC5), // cool-grey
         LogTag.unknown => const Color(0xFFCFD8DC), // light grey-blue
+      };
+
+  // ── Display label for filter chips ────────────────────────────────────────
+
+  /// Human-readable label shown in filter chips / menu items.
+  String get label => switch (this) {
+        LogTag.separator => 'Session Separators',
+        LogTag.request => 'API Requests',
+        LogTag.response => 'API Responses',
+        LogTag.body => 'Payload Bodies',
+        LogTag.curl => 'cURL Commands',
+        LogTag.logger => 'Logger Events',
+        LogTag.responseError => 'Response Errors',
+        LogTag.apiError => 'API/Network Errors',
+        LogTag.flutterError => 'Flutter Errors',
+        LogTag.appError => 'App Errors',
+        LogTag.printLog => 'Console Prints',
+        LogTag.stackTrace => 'Stack Traces',
+        LogTag.unknown => 'Other Logs',
       };
 
   // ── Reverse lookup: line → LogTag ─────────────────────────────────────────

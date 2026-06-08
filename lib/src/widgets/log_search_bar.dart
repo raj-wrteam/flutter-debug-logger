@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../log_level.dart';
+import 'log_filter_sheet.dart';
 
 class LogSearchBar extends StatelessWidget {
   const LogSearchBar({
@@ -8,6 +9,10 @@ class LogSearchBar extends StatelessWidget {
     required this.query,
     required this.activeFilters,
     required this.onToggleFilter,
+    required this.activeTags,
+    required this.onToggleTag,
+    required this.onSelectAllTags,
+    required this.onDeselectAllTags,
     required this.onChanged,
     required this.onClear,
   });
@@ -16,6 +21,10 @@ class LogSearchBar extends StatelessWidget {
   final String query;
   final Set<LogLevel> activeFilters;
   final ValueChanged<LogLevel> onToggleFilter;
+  final Set<LogTag> activeTags;
+  final ValueChanged<LogTag> onToggleTag;
+  final VoidCallback onSelectAllTags;
+  final VoidCallback onDeselectAllTags;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
 
@@ -62,50 +71,53 @@ class LogSearchBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          PopupMenuButton<LogLevel>(
-            tooltip: 'Filter logs by level',
+          IconButton(
+            tooltip: 'Filter logs',
             padding: EdgeInsets.zero,
             icon: Icon(
               Icons.filter_list_rounded,
               size: 19,
-              color: activeFilters.length < LogLevel.values.length
+              color: (activeFilters.length < LogLevel.values.length ||
+                      activeTags.length < LogTag.values.length)
                   ? Colors.orangeAccent
                   : Colors.white38,
             ),
-            color: const Color(0xFF1A1A1A),
-            onSelected: onToggleFilter,
-            itemBuilder: (_) => LogLevel.values.map((level) {
-              final active = activeFilters.contains(level);
-              return PopupMenuItem<LogLevel>(
-                value: level,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      active
-                          ? Icons.check_box_rounded
-                          : Icons.check_box_outline_blank_rounded,
-                      color: active ? Colors.orangeAccent : Colors.white38,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: level.chipColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      level.label,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                  ],
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: const Color(0xFF1A1A1A),
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
+                builder: (context) {
+                  return StatefulBuilder(
+                    builder: (context, setSheetState) {
+                      return LogFilterSheet(
+                        activeFilters: activeFilters,
+                        activeTags: activeTags,
+                        onToggleFilter: (level) {
+                          onToggleFilter(level);
+                          setSheetState(() {});
+                        },
+                        onToggleTag: (tag) {
+                          onToggleTag(tag);
+                          setSheetState(() {});
+                        },
+                        onSelectAllTags: () {
+                          onSelectAllTags();
+                          setSheetState(() {});
+                        },
+                        onDeselectAllTags: () {
+                          onDeselectAllTags();
+                          setSheetState(() {});
+                        },
+                      );
+                    },
+                  );
+                },
               );
-            }).toList(),
+            },
           ),
         ],
       ),

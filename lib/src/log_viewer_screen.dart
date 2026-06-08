@@ -26,6 +26,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   final _scrollController = ScrollController();
 
   static final Set<LogLevel> _activeFilters = {...LogLevel.values};
+  static final Set<LogTag> _activeTags = {...LogTag.values};
   static bool _latestFirst = false;
   static bool _autoScroll = true;
 
@@ -133,6 +134,20 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
 
   void _toggleLogging() {
     setState(DebugLogger.toggleLogging);
+  }
+
+  void _selectAllTags() {
+    setState(() {
+      _activeTags.addAll(LogTag.values);
+    });
+    _scheduleAutoScroll();
+  }
+
+  void _deselectAllTags() {
+    setState(() {
+      _activeTags.clear();
+    });
+    _scheduleAutoScroll();
   }
 
   void _toggleLatestFirst() {
@@ -303,6 +318,19 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               });
               _scheduleAutoScroll();
             },
+            activeTags: _activeTags,
+            onToggleTag: (tag) {
+              setState(() {
+                if (_activeTags.contains(tag)) {
+                  if (_activeTags.length > 1) _activeTags.remove(tag);
+                } else {
+                  _activeTags.add(tag);
+                }
+              });
+              _scheduleAutoScroll();
+            },
+            onSelectAllTags: _selectAllTags,
+            onDeselectAllTags: _deselectAllTags,
             onChanged: (value) {
               setState(() => _query = value);
               _scheduleAutoScroll();
@@ -356,11 +384,15 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   // -- Filtering/search ------------------------------------------------------
 
   bool _linePassesFilter(String line) {
-    if (_isSeparator(line)) return true;
     if (line.trim().isEmpty) return true;
     final level = LogLevel.fromLine(line);
-    if (level == null) return _activeFilters.contains(LogLevel.info);
-    return _activeFilters.contains(level);
+    final levelPasses = level == null
+        ? _activeFilters.contains(LogLevel.info)
+        : _activeFilters.contains(level);
+    if (!levelPasses) return false;
+
+    final tag = LogTag.fromLine(line);
+    return _activeTags.contains(tag);
   }
 
   bool _lineMatchesSearch(String line) {
