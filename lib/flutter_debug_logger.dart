@@ -12,3 +12,6 @@ export 'src/debug_logger.dart' show DebugLogger, flutterDebugLoggerEnabled;
 export 'src/flutter_debug_wrapper.dart' show FlutterDebugLogger;
 export 'src/log_interceptor.dart' show FlutterDebugLogInterceptor;
 export 'src/log_level.dart' show LogLevel, LogTag;
+export 'src/log_store.dart' show LogStore;
+export 'src/models/log_entry.dart' show LogEntry;
+export 'src/models/log_session.dart' show LogSession;

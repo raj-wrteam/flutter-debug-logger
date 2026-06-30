@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'debug_logger.dart';
 import 'log_level.dart';
 
-/// Drop-in Dio interceptor — logs all API traffic to the debug file.
+/// Drop-in Dio interceptor — logs all API traffic to the debug store.
 ///
 /// ```dart
 /// // Basic usage — request/response/error logging only:
@@ -23,13 +23,6 @@ class FlutterDebugLogInterceptor extends Interceptor {
 
   /// When `true`, a cURL command equivalent to every outgoing request is
   /// appended to the debug log immediately after the `[Request]` line.
-  ///
-  /// The command is built from [RequestOptions] and respects:
-  /// - All request headers
-  /// - JSON bodies (serialised with [jsonEncode], passed as `-d`)
-  /// - FormData fields (`-F key=value`)
-  /// - FormData file references (`-F key=@filename`)
-  /// - Raw string bodies (`--data-raw`)
   final bool generateCurl;
 
   /// When `true`, logs request bodies after the request line.
@@ -46,8 +39,6 @@ class FlutterDebugLogInterceptor extends Interceptor {
 
   /// When `true`, headers specified in [redactedHeaders] will be replaced
   /// with `<redacted>` in the generated cURL command.
-  ///
-  /// Defaults to `false` so that copy-pasted cURL commands are fully functional.
   final bool redactHeadersInCurl;
 
   const FlutterDebugLogInterceptor({
@@ -68,24 +59,20 @@ class FlutterDebugLogInterceptor extends Interceptor {
   String get _prefix => tag != null ? '[$tag]' : '';
   static const _startedAtKey = 'flutter_debug_logger_started_at';
 
-  // ---------------------------------------------------------------------------
-  // cURL builder
-  // ---------------------------------------------------------------------------
+  // ── cURL builder ──────────────────────────────────────────────────────────
 
-  /// Builds a cURL command string from [options].
   String _buildCurl(RequestOptions options) {
     final method = options.method.toUpperCase();
     final url = options.uri.toString();
     final buf = StringBuffer("curl -X $method '${_escapeSingle(url)}'");
 
-    // Headers
     options.headers.forEach((key, dynamic value) {
-      final headerValue =
-          (redactHeadersInCurl && _isRedactedHeader(key)) ? '<redacted>' : '$value';
+      final headerValue = (redactHeadersInCurl && _isRedactedHeader(key))
+          ? '<redacted>'
+          : '$value';
       buf.write(" -H '${_escapeSingle(key)}: ${_escapeSingle(headerValue)}'");
     });
 
-    // Body
     final data = options.data;
     if (data != null) {
       if (data is FormData) {
@@ -100,11 +87,8 @@ class FlutterDebugLogInterceptor extends Interceptor {
               " -F '${_escapeSingle(file.key)}=@${_escapeSingle(filename)}'");
         }
       } else if (data is Map || data is List) {
-        // JSON body — use -d with jsonEncode, not -F
-        final json = _escapeSingle(jsonEncode(data));
-        buf.write(" -d '$json'");
+        buf.write(" -d '${_escapeSingle(jsonEncode(data))}'");
       } else {
-        // Raw string / other
         buf.write(" --data-raw '${_escapeSingle('$data')}'");
       }
     }
@@ -112,23 +96,21 @@ class FlutterDebugLogInterceptor extends Interceptor {
     return buf.toString();
   }
 
-  /// Escapes single quotes for safe embedding inside `'…'` shell strings.
   String _escapeSingle(String s) => s.replaceAll("'", r"'\''");
 
   bool _isRedactedHeader(String key) {
     final lowerKey = key.toLowerCase();
-    return redactedHeaders.any((header) => header.toLowerCase() == lowerKey);
+    return redactedHeaders.any((h) => h.toLowerCase() == lowerKey);
   }
 
   String _formatBody(dynamic data) {
     if (data == null) return '<empty>';
-
     String text;
     if (data is FormData) {
-      final fields = data.fields.map((field) => '${field.key}=${field.value}');
-      final files = data.files.map((file) {
-        final filename = file.value.filename ?? 'file';
-        return '${file.key}=@$filename';
+      final fields = data.fields.map((f) => '${f.key}=${f.value}');
+      final files = data.files.map((f) {
+        final filename = f.value.filename ?? 'file';
+        return '${f.key}=@$filename';
       });
       text = [...fields, ...files].join(', ');
     } else if (data is List<int>) {
@@ -138,7 +120,6 @@ class FlutterDebugLogInterceptor extends Interceptor {
     } else {
       text = '$data';
     }
-
     return _truncate(text);
   }
 
@@ -148,41 +129,49 @@ class FlutterDebugLogInterceptor extends Interceptor {
     return '${text.substring(0, maxBodyChars)}... (+$omitted chars)';
   }
 
-  String _durationLabel(RequestOptions options) {
+  int _elapsedMs(RequestOptions options) {
     final startedAt = options.extra[_startedAtKey];
-    if (startedAt is! int) return '';
-    final elapsedMicros = DateTime.now().microsecondsSinceEpoch - startedAt;
-    final elapsedMs = elapsedMicros / 1000;
-    return ' (${elapsedMs.toStringAsFixed(0)}ms)';
+    if (startedAt is! int) return 0;
+    return ((DateTime.now().microsecondsSinceEpoch - startedAt) / 1000)
+        .round();
   }
 
-  // ---------------------------------------------------------------------------
-  // Interceptor overrides
-  // ---------------------------------------------------------------------------
+  // ── Interceptor overrides ─────────────────────────────────────────────────
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (flutterDebugLoggerEnabled) {
       options.extra[_startedAtKey] = DateTime.now().microsecondsSinceEpoch;
+
       final params = options.queryParameters.isEmpty
           ? ''
           : ' params:${options.queryParameters}';
-      DebugLogger.write(
-        '[Request]$_prefix ${options.method} ${options.uri}$params',
+
+      DebugLogger.writeStructured(
+        message: '[Request]$_prefix ${options.method} ${options.uri}$params',
         level: LogLevel.info,
+        tag: LogTag.request,
+        metadata: {
+          'method': options.method,
+          'url': options.uri.toString(),
+          if (options.queryParameters.isNotEmpty)
+            'params': options.queryParameters,
+        },
       );
 
       if (logRequestBody && options.data != null) {
-        DebugLogger.write(
-          '[Request Body]$_prefix ${_formatBody(options.data)}',
+        DebugLogger.writeStructured(
+          message: '[Request Body]$_prefix ${_formatBody(options.data)}',
           level: LogLevel.info,
+          tag: LogTag.body,
         );
       }
 
       if (generateCurl) {
-        DebugLogger.write(
-          '[cURL]$_prefix ${_buildCurl(options)}',
+        DebugLogger.writeStructured(
+          message: '[cURL]$_prefix ${_buildCurl(options)}',
           level: LogLevel.info,
+          tag: LogTag.curl,
         );
       }
     }
@@ -195,26 +184,41 @@ class FlutterDebugLogInterceptor extends Interceptor {
     ResponseInterceptorHandler handler,
   ) {
     if (flutterDebugLoggerEnabled) {
-      DebugLogger.write(
-        '[Response]$_prefix ${response.statusCode} '
-        '${response.requestOptions.uri}${_durationLabel(response.requestOptions)}',
+      final elapsed = _elapsedMs(response.requestOptions);
+
+      DebugLogger.writeStructured(
+        message:
+            '[Response]$_prefix ${response.statusCode} ${response.requestOptions.uri}'
+            '${elapsed > 0 ? ' (${elapsed}ms)' : ''}',
         level: LogLevel.info,
+        tag: LogTag.response,
+        metadata: {
+          'statusCode': response.statusCode,
+          'url': response.requestOptions.uri.toString(),
+          if (elapsed > 0) 'durationMs': elapsed,
+        },
       );
 
       if (logResponseBody && response.data != null) {
-        DebugLogger.write(
-          '[Response Body]$_prefix ${_formatBody(response.data)}',
+        DebugLogger.writeStructured(
+          message: '[Response Body]$_prefix ${_formatBody(response.data)}',
           level: LogLevel.info,
+          tag: LogTag.body,
         );
       }
 
-      // Surface API-level error flags (common pattern: {error: true, message: …})
       if (response.data case final Map<String, dynamic> data
           when data['error'] == true) {
-        DebugLogger.write(
-          '[Response Error]$_prefix ${response.requestOptions.path} '
-          '— ${data['message']} — $data',
+        DebugLogger.writeStructured(
+          message:
+              '[Response Error]$_prefix ${response.requestOptions.path} '
+              '— ${data['message']} — $data',
           level: LogLevel.error,
+          tag: LogTag.responseError,
+          metadata: {
+            'url': response.requestOptions.path,
+            'errorMessage': data['message'],
+          },
         );
       }
     }
@@ -224,20 +228,31 @@ class FlutterDebugLogInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (flutterDebugLoggerEnabled) {
-      DebugLogger.write(
-        '[API Error]$_prefix ${err.response?.statusCode} '
-        '${err.requestOptions.uri}${_durationLabel(err.requestOptions)} '
-        '| ${err.response?.statusMessage} | ${err.error}',
+      final elapsed = _elapsedMs(err.requestOptions);
+      DebugLogger.writeStructured(
+        message:
+            '[API Error]$_prefix ${err.response?.statusCode} ${err.requestOptions.uri}'
+            '${elapsed > 0 ? ' (${elapsed}ms)' : ''}'
+            ' | ${err.response?.statusMessage} | ${err.error}',
         level: LogLevel.error,
+        tag: LogTag.apiError,
+        metadata: {
+          'statusCode': err.response?.statusCode,
+          'url': err.requestOptions.uri.toString(),
+          if (elapsed > 0) 'durationMs': elapsed,
+          'statusMessage': err.response?.statusMessage,
+        },
+        stackTrace: err.stackTrace != StackTrace.empty
+            ? err.stackTrace.toString()
+            : null,
       );
+
       if (logResponseBody && err.response?.data != null) {
-        DebugLogger.write(
-          '[Error Body]$_prefix ${_formatBody(err.response?.data)}',
+        DebugLogger.writeStructured(
+          message: '[Error Body]$_prefix ${_formatBody(err.response?.data)}',
           level: LogLevel.error,
+          tag: LogTag.body,
         );
-      }
-      if (err.stackTrace != StackTrace.empty) {
-        DebugLogger.write(err.stackTrace.toString(), level: LogLevel.error);
       }
     }
     handler.reject(err);

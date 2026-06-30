@@ -4,16 +4,39 @@ import 'package:share_plus/share_plus.dart';
 
 import 'debug_logger.dart';
 import 'log_level.dart';
-import 'widgets/log_search_bar.dart';
+import 'models/log_entry.dart';
+import 'models/log_session.dart';
+import 'widgets/log_entry_row.dart';
 import 'widgets/log_menu_row.dart';
 import 'widgets/log_empty_state.dart';
+import 'widgets/log_search_bar.dart';
+import 'widgets/log_session_header.dart';
 import 'widgets/log_share_confirm_sheet.dart';
+
+// ── Display item sealed class ─────────────────────────────────────────────────
+
+sealed class _DisplayItem {}
+
+final class _SessionHeaderItem extends _DisplayItem {
+  _SessionHeaderItem(this.session, this.sessionNumber);
+  final LogSession session;
+  final int sessionNumber;
+}
+
+final class _EntryItem extends _DisplayItem {
+  _EntryItem(this.entry, this.sessionNumber);
+  final LogEntry entry;
+  final int sessionNumber;
+}
+
+// ── Screen ────────────────────────────────────────────────────────────────────
 
 /// Plain, zero-dependency log viewer.
 ///
-/// App bar: logging toggle + refresh/copy/clear/share actions.
-/// Controls: search, latest-first, and auto-scroll toggles.
-/// Body: colour-coded selectable log lines rendered lazily.
+/// Reacts live to [DebugLogger.store] via [ListenableBuilder].
+/// App bar: logging toggle + copy/clear/share actions.
+/// Controls: search and filter by level/tag.
+/// Body: colour-coded, expandable log entries grouped by session.
 class DebugLogViewerScreen extends StatefulWidget {
   const DebugLogViewerScreen({super.key});
 
@@ -30,17 +53,13 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   static bool _latestFirst = false;
   static bool _autoScroll = true;
 
-  List<String> _lines = const <String>[];
-  Map<String, int> _sessionNumbers = const <String, int>{};
-  bool _loading = true;
+  final Set<String> _collapsedSessions = {};
+  final Set<String> _expandedEntries = {}; // IDs of entries currently expanded
+  final Set<String> _expandedStacks =
+      {}; // IDs of entries with full stack visible
+
   bool _cleared = false;
   String _query = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
 
   @override
   void dispose() {
@@ -49,51 +68,77 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    final lines = await DebugLogger.readLogLines();
-    if (!mounted) return;
-    final sessionNumbers = <String, int>{};
-    var sessionCount = 0;
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      if (line.contains('SESSION START')) {
-        sessionCount++;
-        sessionNumbers[line] = sessionCount;
+  // ── Display items ─────────────────────────────────────────────────────────
+
+  List<_DisplayItem> _buildDisplayItems() {
+    final sessions = DebugLogger.store.sessions;
+    final items = <_DisplayItem>[];
+
+    for (var si = 0; si < sessions.length; si++) {
+      final session = sessions[si];
+      final sessionNumber = si + 1;
+      items.add(_SessionHeaderItem(session, sessionNumber));
+
+      if (_collapsedSessions.contains(session.id)) continue;
+
+      final entries = session.entries
+          .where(_entryPassesFilter)
+          .where(_entryMatchesSearch)
+          .toList();
+
+      final ordered = _latestFirst ? entries.reversed.toList() : entries;
+      for (final entry in ordered) {
+        items.add(_EntryItem(entry, sessionNumber));
       }
     }
-    setState(() {
-      _lines = lines;
-      _sessionNumbers = sessionNumbers;
-      _loading = false;
-      _cleared = false;
-    });
-    _scheduleAutoScroll();
+
+    return _latestFirst ? _reverseSessionBlocks(items) : items;
   }
 
-  bool get _hasLogs => _lines.isNotEmpty && !_cleared;
-
-  List<String> get _visibleLines {
-    final filtered = _lines.where(_linePassesFilter).where(_lineMatchesSearch);
-    return _latestFirst
-        ? filtered.toList().reversed.toList()
-        : filtered.toList();
+  List<_DisplayItem> _reverseSessionBlocks(List<_DisplayItem> items) {
+    final blocks = <List<_DisplayItem>>[];
+    List<_DisplayItem>? current;
+    for (final item in items) {
+      if (item is _SessionHeaderItem) {
+        if (current != null) blocks.add(current);
+        current = [item];
+      } else {
+        current?.add(item);
+      }
+    }
+    if (current != null) blocks.add(current);
+    return blocks.reversed.expand((b) => b).toList();
   }
 
-  // -- Actions ---------------------------------------------------------------
+  // ── Filtering / search ────────────────────────────────────────────────────
 
-  Future<void> _refresh() async {
-    setState(() => _loading = true);
-    await _load();
+  bool _entryPassesFilter(LogEntry entry) {
+    if (!_activeFilters.contains(entry.level)) return false;
+    return _activeTags.contains(entry.tag);
   }
+
+  bool _entryMatchesSearch(LogEntry entry) {
+    final q = _query.trim();
+    if (q.isEmpty) return true;
+    return entry.message.toLowerCase().contains(q.toLowerCase());
+  }
+
+  // ── Aggregate helpers ─────────────────────────────────────────────────────
+
+  bool get _hasLogs => DebugLogger.store.sessions.isNotEmpty && !_cleared;
+
+  int get _totalEntries =>
+      DebugLogger.store.sessions.fold(0, (sum, s) => sum + s.entries.length);
+
+  int get _visibleEntries =>
+      _buildDisplayItems().whereType<_EntryItem>().length;
+
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   Future<void> _clear() async {
     await DebugLogger.clearFileAsync();
     if (!mounted) return;
-    setState(() {
-      _lines = const <String>[];
-      _sessionNumbers = const <String, int>{};
-      _cleared = true;
-    });
+    setState(() => _cleared = true);
   }
 
   Future<void> _copyText(String text, String message) async {
@@ -110,11 +155,20 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
   }
 
   Future<void> _copyAll() async {
-    await _copyText(_lines.join('\n'), 'Copied all logs');
+    final text = DebugLogger.store.sessions
+        .asMap()
+        .entries
+        .map((e) => e.value.formatAsText(e.key + 1))
+        .join('\n\n');
+    await _copyText(text, 'Copied all logs');
   }
 
   Future<void> _copyFiltered() async {
-    await _copyText(_visibleLines.join('\n'), 'Copied filtered logs');
+    final items = _buildDisplayItems().whereType<_EntryItem>();
+    final text = items
+        .map((i) => i.entry.formatAsText(sessionNumber: i.sessionNumber))
+        .join('\n\n');
+    await _copyText(text, 'Copied filtered logs');
   }
 
   Future<void> _exportLogs() async {
@@ -139,26 +193,19 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
       builder: (_) => const LogShareConfirmSheet(),
     );
     if (ok != true || !mounted) return;
-
     await _exportLogs();
     await _clear();
   }
 
-  void _toggleLogging() {
-    setState(DebugLogger.toggleLogging);
-  }
+  void _toggleLogging() => setState(DebugLogger.toggleLogging);
 
   void _selectAllTags() {
-    setState(() {
-      _activeTags.addAll(LogTag.values);
-    });
+    setState(() => _activeTags.addAll(LogTag.values));
     _scheduleAutoScroll();
   }
 
   void _deselectAllTags() {
-    setState(() {
-      _activeTags.clear();
-    });
+    setState(() => _activeTags.clear());
     _scheduleAutoScroll();
   }
 
@@ -169,9 +216,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
 
   void _toggleAutoScroll() {
     setState(() => _autoScroll = !_autoScroll);
-    if (_autoScroll) {
-      _scheduleAutoScroll(force: true);
-    }
+    if (_autoScroll) _scheduleAutoScroll(force: true);
   }
 
   void _scheduleAutoScroll({bool force = false}) {
@@ -189,30 +234,31 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
     });
   }
 
-  // -- Build -----------------------------------------------------------------
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final visibleLines = _visibleLines;
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
       appBar: AppBar(
         backgroundColor: const Color(0xFF141414),
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Debug Logs',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            if (!_loading)
+        title: ListenableBuilder(
+          listenable: DebugLogger.store,
+          builder: (context, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Debug Logs',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
               Text(
-                '${_fileSizeLabel()}  |  ${visibleLines.length}/${_lines.length} lines',
+                '${_fileSizeLabel()}  |  $_visibleEntries/$_totalEntries entries',
                 style: const TextStyle(fontSize: 11, color: Colors.white38),
               ),
-          ],
+            ],
+          ),
         ),
         actions: [
           PopupMenuButton<_LogAction>(
@@ -227,8 +273,6 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
                   _toggleLatestFirst();
                 case _LogAction.toggleAutoScroll:
                   _toggleAutoScroll();
-                case _LogAction.refresh:
-                  _refresh();
                 case _LogAction.copyAll:
                   _copyAll();
                 case _LogAction.copyFiltered:
@@ -250,10 +294,6 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
                       : Icons.play_circle_outline,
                   DebugLogger.loggingActive ? 'Stop logging' : 'Start logging',
                 ),
-              ),
-              PopupMenuItem(
-                value: _LogAction.refresh,
-                child: const LogMenuRow(Icons.refresh_rounded, 'Refresh'),
               ),
               const PopupMenuDivider(height: 1),
               PopupMenuItem(
@@ -286,7 +326,7 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               ),
               PopupMenuItem(
                 value: _LogAction.copyFiltered,
-                enabled: visibleLines.isNotEmpty,
+                enabled: _hasLogs,
                 child: const LogMenuRow(
                     Icons.content_copy_rounded, 'Copy filtered'),
               ),
@@ -353,202 +393,85 @@ class _DebugLogViewerScreenState extends State<DebugLogViewerScreen> {
               _scheduleAutoScroll();
             },
           ),
-          Expanded(child: _buildBody(visibleLines)),
+          Expanded(child: _buildBody()),
         ],
       ),
     );
   }
 
-  Widget _buildBody(List<String> visibleLines) {
-    if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white24),
-      );
-    }
-    if (!_hasLogs) {
-      return LogEmptyState(text: _cleared ? 'Logs cleared.' : 'No logs yet.');
-    }
-    if (visibleLines.isEmpty) {
-      return const LogEmptyState(text: 'No matching logs.');
-    }
-
-    return Scrollbar(
-      controller: _scrollController,
-      thumbVisibility: true,
-      child: SelectionArea(
-        child: ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
-          itemCount: visibleLines.length,
-          itemBuilder: (context, index) {
-            final line = visibleLines[index];
-            if (line.contains('SESSION START')) {
-              return _buildSessionDivider(line);
-            }
-            return Text.rich(
-              _buildLineSpan(line),
-              style: _mono,
-              textScaler: TextScaler.noScaling,
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  String? _parseSessionTimestamp(String line) {
-    final pattern = RegExp(r'SESSION START\s+(.+)');
-    final match = pattern.firstMatch(line);
-    if (match != null) {
-      return match.group(1)?.trim();
-    }
-    return null;
-  }
-
-  String _formatDateTime(DateTime dt) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    final year = dt.year;
-    final month = months[dt.month - 1];
-    final day = dt.day.toString().padLeft(2, '0');
-
-    final hourNum = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final second = dt.second.toString().padLeft(2, '0');
-    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-
-    return '$month $day, $year • $hourNum:$minute:$second $ampm';
-  }
-
-  Widget _buildSessionDivider(String line) {
-    final timestampStr = _parseSessionTimestamp(line);
-    String displayStr = line.trim();
-    if (timestampStr != null) {
-      final dt = DateTime.tryParse(timestampStr);
-      if (dt != null) {
-        final formattedDate = _formatDateTime(dt);
-        final sessionNum = _sessionNumbers[line];
-        if (sessionNum != null) {
-          displayStr = 'SESSION #$sessionNum  •  $formattedDate';
-        } else {
-          displayStr = 'SESSION START  •  $formattedDate';
+  Widget _buildBody() {
+    // Entire body is reactive — ListenableBuilder wraps all states so that
+    // the "No logs yet" → list transition fires when the store gains entries.
+    return ListenableBuilder(
+      listenable: DebugLogger.store,
+      builder: (context, _) {
+        if (!_hasLogs) {
+          return LogEmptyState(
+              text: _cleared ? 'Logs cleared.' : 'No logs yet.');
         }
-      }
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Divider(
-              color: Colors.white12,
-              thickness: 1,
-              endIndent: 12,
-            ),
+        final items = _buildDisplayItems();
+        // Check filtered entries across ALL sessions regardless of collapse state
+        // so collapsing sessions doesn't trigger "No matching logs".
+        final hasFilteredEntries = DebugLogger.store.sessions
+            .expand((s) => s.entries)
+            .any((e) => _entryPassesFilter(e) && _entryMatchesSearch(e));
+        if (!hasFilteredEntries) {
+          return const LogEmptyState(text: 'No matching logs.');
+        }
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _scheduleAutoScroll());
+        return Scrollbar(
+          controller: _scrollController,
+          thumbVisibility: true,
+          interactive: true,
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return switch (item) {
+                _SessionHeaderItem(:final session, :final sessionNumber) =>
+                  LogSessionHeader(
+                    session: session,
+                    sessionNumber: sessionNumber,
+                    isCollapsed: _collapsedSessions.contains(session.id),
+                    onToggle: () => setState(() {
+                      if (_collapsedSessions.contains(session.id)) {
+                        _collapsedSessions.remove(session.id);
+                      } else {
+                        _collapsedSessions.add(session.id);
+                      }
+                    }),
+                  ),
+                _EntryItem(:final entry, :final sessionNumber) => LogEntryRow(
+                    entry: entry,
+                    sessionNumber: sessionNumber,
+                    isExpanded: _expandedEntries.contains(entry.id),
+                    isStackExpanded: _expandedStacks.contains(entry.id),
+                    query: _query,
+                    onToggleExpand: () => setState(() {
+                      if (_expandedEntries.contains(entry.id)) {
+                        _expandedEntries.remove(entry.id);
+                      } else {
+                        _expandedEntries.add(entry.id);
+                      }
+                    }),
+                    onToggleStack: () => setState(() {
+                      if (_expandedStacks.contains(entry.id)) {
+                        _expandedStacks.remove(entry.id);
+                      } else {
+                        _expandedStacks.add(entry.id);
+                      }
+                    }),
+                  ),
+              };
+            },
           ),
-          Text(
-            displayStr,
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFFFB74D),
-              letterSpacing: 0.8,
-            ),
-          ),
-          const Expanded(
-            child: Divider(
-              color: Colors.white12,
-              thickness: 1,
-              indent: 12,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
-
-  // -- Filtering/search ------------------------------------------------------
-
-  bool _linePassesFilter(String line) {
-    if (line.trim().isEmpty) return true;
-    if (line.contains('====')) return false;
-    final level = LogLevel.fromLine(line);
-    final levelPasses = level == null
-        ? _activeFilters.contains(LogLevel.info)
-        : _activeFilters.contains(level);
-    if (!levelPasses) return false;
-
-    final tag = LogTag.fromLine(line);
-    return _activeTags.contains(tag);
-  }
-
-  bool _lineMatchesSearch(String line) {
-    final q = _query.trim();
-    if (q.isEmpty) return true;
-    return line.toLowerCase().contains(q.toLowerCase());
-  }
-
-  // -- Colourised log lines --------------------------------------------------
-
-  static const _mono = TextStyle(
-    fontFamily: 'monospace',
-    fontSize: 11,
-    height: 1.55,
-  );
-
-  TextSpan _buildLineSpan(String line) {
-    final style = _mono.copyWith(
-      color: _colorFor(line),
-      fontWeight: _isSeparator(line) ? FontWeight.w700 : FontWeight.w400,
-    );
-    final q = _query.trim();
-    if (q.isEmpty) return TextSpan(text: line, style: style);
-
-    final lowerLine = line.toLowerCase();
-    final lowerQuery = q.toLowerCase();
-    final children = <TextSpan>[];
-    var start = 0;
-    while (true) {
-      final match = lowerLine.indexOf(lowerQuery, start);
-      if (match < 0) break;
-      if (match > start) {
-        children.add(TextSpan(text: line.substring(start, match)));
-      }
-      children.add(
-        TextSpan(
-          text: line.substring(match, match + q.length),
-          style: const TextStyle(
-            color: Colors.black,
-            backgroundColor: Colors.amberAccent,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
-      start = match + q.length;
-    }
-    if (start < line.length)
-      children.add(TextSpan(text: line.substring(start)));
-    return TextSpan(style: style, children: children);
-  }
-
-  static bool _isSeparator(String line) =>
-      LogTag.fromLine(line) == LogTag.separator;
-
-  static Color _colorFor(String line) => LogTag.fromLine(line).color;
 
   String _fileSizeLabel() {
     final bytes = DebugLogger.fileSizeBytes;
@@ -562,10 +485,9 @@ enum _LogAction {
   toggleLogging,
   toggleLatestFirst,
   toggleAutoScroll,
-  refresh,
   copyAll,
-  export,
   copyFiltered,
+  export,
   shareAndClear,
   clear,
 }

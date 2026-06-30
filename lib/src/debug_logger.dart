@@ -1,11 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'log_level.dart';
+import 'log_store.dart';
+import 'models/log_entry.dart';
+import 'models/log_session.dart';
 
 // ---------------------------------------------------------------------------
 // Build-time flag:  flutter build apk --dart-define=FLUTTER_DEBUG_LOGGER=true
@@ -17,16 +21,22 @@ const bool _kFlagEnabled =
 /// Returns true when the logger should be active.
 bool get flutterDebugLoggerEnabled => kDebugMode || _kFlagEnabled;
 
-/// Persistent, file-based debug logger.
+/// Persistent, structured debug logger.
 ///
 /// - Thread-safe for typical Flutter single-isolate usage.
 /// - Silently no-ops when [flutterDebugLoggerEnabled] is false.
 /// - Captures `print` / `debugPrint` when you install [DebugLogger.capturePrint].
 /// - Captures Flutter framework errors via [DebugLogger.captureFlutterErrors].
 /// - Captures uncaught async/Dart errors via [DebugLogger.captureUncaughtErrors].
+/// - [store] is a [LogStore] (ChangeNotifier) — attach a ListenableBuilder to
+///   receive live updates in the log viewer.
 class DebugLogger {
   DebugLogger._();
 
+  // ── Public store — viewer attaches ListenableBuilder to this ──────────────
+  static final LogStore store = LogStore();
+
+  // ── Internal state ────────────────────────────────────────────────────────
   static File? _logFile;
   static Directory? _logDirectory;
   static bool _initialized = false;
@@ -36,6 +46,16 @@ class DebugLogger {
   static Future<void> _pendingWrite = Future<void>.value();
   static DebugPrintCallback? _previousDebugPrint;
   static bool _printCaptured = false;
+  static String? _currentSessionId;
+  static int _idCounter = 0;
+
+  // ── ID generation ─────────────────────────────────────────────────────────
+
+  static String _generateId() {
+    final ts = DateTime.now().microsecondsSinceEpoch;
+    final rand = math.Random().nextInt(0xFFFF);
+    return '${ts.toRadixString(16)}-${(_idCounter++).toRadixString(16)}-${rand.toRadixString(16)}';
+  }
 
   // ── Initialization ────────────────────────────────────────────────────────
 
@@ -44,16 +64,13 @@ class DebugLogger {
   /// ```dart
   /// await DebugLogger.init();
   /// ```
-  ///
-  /// Pass [captureFlutter] and/or [captureUncaught] to enable automatic
-  /// Dart/Flutter error capture.
   static Future<void> init({
     bool captureFlutter = true,
     bool captureUncaught = true,
     bool startEnabled = true,
     int maxLogBytes = 1024 * 1024,
     int maxBackupFiles = 2,
-    String fileName = 'flutter_debug_logs.txt',
+    String fileName = 'flutter_debug_logs.jsonl',
   }) async {
     if (!flutterDebugLoggerEnabled) return;
     try {
@@ -69,17 +86,16 @@ class DebugLogger {
       await _logFile!.create(recursive: true);
       _initialized = true;
 
-      final now = DateTime.now().toIso8601String();
-      _appendRaw(
-        '\n${"=" * 64}\n'
-        '  SESSION START  $now\n'
-        '${"=" * 64}\n\n',
-        respectLoggingState: false,
-      );
+      // Replay existing file into store BEFORE starting a new session.
+      await _replayFile();
 
-      // Redirect print() calls into the log file
+      // Start new session.
+      _currentSessionId = _generateId();
+      final sessionStart = DateTime.now();
+      store.startSession(_currentSessionId!, sessionStart);
+      _queueSessionStartFlush(_currentSessionId!, sessionStart);
+
       capturePrint();
-
       if (captureFlutter) captureFlutterErrors();
       if (captureUncaught) captureUncaughtErrors();
     } on Exception catch (e) {
@@ -89,32 +105,12 @@ class DebugLogger {
 
   // ── Writing ───────────────────────────────────────────────────────────────
 
-  /// Maximum number of stack-trace lines kept per error entry.
-  static const int _kMaxStackLines = 8;
-
-  /// Trims [stack] to at most [_kMaxStackLines] lines.
-  ///
-  /// If lines are omitted, a trailing `  … (+N more frames)` note is appended
-  /// so the reader knows the trace was truncated.
-  static String _truncateStack(StackTrace stack) {
-    final lines = stack.toString().split('\n');
-    if (lines.length <= _kMaxStackLines) return stack.toString();
-    final kept = lines.take(_kMaxStackLines).join('\n');
-    final omitted = lines.length - _kMaxStackLines;
-    return '$kept\n  … (+$omitted more frames)';
-  }
-
-  /// Appends a timestamped [line] to the log file tagged with [level].
-  ///
-  /// Defaults to [LogLevel.info] so all existing call-sites are unaffected.
+  /// Appends a timestamped log entry tagged with [level].
   static void write(String line, {LogLevel level = LogLevel.info}) {
-    if (!flutterDebugLoggerEnabled || !_initialized || !_loggingActive) return;
-    final ts = DateTime.now().toIso8601String();
-    _appendRaw('[$ts]${level.tag} $line\n');
+    writeStructured(message: line, level: level);
   }
 
-  /// Convenience method to log a caught error/exception with an optional
-  /// stack trace at [LogLevel.error].
+  /// Logs a caught error/exception with an optional stack trace at [LogLevel.error].
   ///
   /// ```dart
   /// try { … } catch (e, st) { DebugLogger.writeError(e, st); }
@@ -124,33 +120,101 @@ class DebugLogger {
     StackTrace? stackTrace,
     LogLevel level = LogLevel.error,
   ]) {
+    writeStructured(
+      message: 'EXCEPTION: $error',
+      level: level,
+      stackTrace: stackTrace?.toString(),
+    );
+  }
+
+  /// Package-internal structured write — used by [FlutterDebugLogInterceptor]
+  /// to supply structured [metadata]. External callers use [write]/[writeError].
+  static void writeStructured({
+    required String message,
+    LogLevel level = LogLevel.info,
+    LogTag? tag,
+    Map<String, dynamic> metadata = const {},
+    String? stackTrace,
+  }) {
     if (!flutterDebugLoggerEnabled || !_initialized || !_loggingActive) return;
-    write('EXCEPTION: $error', level: level);
-    if (stackTrace != null && stackTrace != StackTrace.empty) {
-      final ts = DateTime.now().toIso8601String();
-      _appendRaw('[$ts]${level.tag} STACK:\n${_truncateStack(stackTrace)}\n');
-    }
-    _appendRaw('\n'); // blank line separates log blocks for filter clarity
+    final resolvedTag = tag ?? LogTag.fromMessage(message);
+    final entry = LogEntry(
+      id: _generateId(),
+      timestamp: DateTime.now(),
+      level: level,
+      tag: resolvedTag,
+      message: message,
+      sessionId: _currentSessionId ?? '',
+      stackTrace: stackTrace,
+      metadata: metadata,
+    );
+    store.append(entry);
+    _queueJsonlFlush(entry);
   }
 
-  /// Low-level append; no timestamp added.
-  static void _appendRaw(String text, {bool respectLoggingState = true}) {
-    if (!flutterDebugLoggerEnabled || !_initialized || _logFile == null) return;
-    if (respectLoggingState && !_loggingActive) return;
+  // ── JSONL flush ───────────────────────────────────────────────────────────
 
+  static void _queueJsonlFlush(LogEntry entry) {
     _pendingWrite =
-        _pendingWrite.then((_) => _appendRawAsync(text)).catchError((_) {
-      // Silently swallow — never crash the host app.
-    });
+        _pendingWrite.then((_) => _flushEntry(entry)).catchError((_) {});
   }
 
-  static Future<void> _appendRawAsync(String text) async {
+  static Future<void> _flushEntry(LogEntry entry) async {
     final file = _logFile;
     if (file == null) return;
     await file.create(recursive: true);
-    await _rotateIfNeeded(utf8.encode(text).length);
-    await file.writeAsString(text, mode: FileMode.writeOnlyAppend);
+    final line = '${jsonEncode(store.entryToJson(entry))}\n';
+    await _rotateIfNeeded(utf8.encode(line).length);
+    await file.writeAsString(line, mode: FileMode.writeOnlyAppend);
   }
+
+  static void _queueSessionStartFlush(String sessionId, DateTime startTime) {
+    _pendingWrite = _pendingWrite.then((_) async {
+      final file = _logFile;
+      if (file == null) return;
+      await file.create(recursive: true);
+      final line =
+          '${jsonEncode({'tag': 'sessionStart', 'sessionId': sessionId, 'ts': startTime.toIso8601String()})}\n';
+      await file.writeAsString(line, mode: FileMode.writeOnlyAppend);
+    }).catchError((_) {});
+  }
+
+  // ── File replay ───────────────────────────────────────────────────────────
+
+  static Future<void> _replayFile() async {
+    final file = _logFile;
+    if (file == null || !await file.exists()) return;
+    final content = await file.readAsString();
+    if (content.trim().isEmpty) return;
+
+    final loadedSessions = <LogSession>[];
+    LogSession? current;
+
+    for (final line in content.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      try {
+        final json = jsonDecode(trimmed) as Map<String, dynamic>;
+        if (json['tag'] == 'sessionStart') {
+          current = LogSession(
+            id: json['sessionId'] as String,
+            startTime: DateTime.parse(json['ts'] as String),
+          );
+          loadedSessions.add(current);
+        } else {
+          current?.addEntry(store.entryFromJson(json));
+        }
+      } catch (_) {
+        // Skip malformed lines silently.
+      }
+    }
+
+    if (loadedSessions.isNotEmpty) {
+      store.loadSessions(loadedSessions);
+    }
+  }
+
+  // ── Log rotation ──────────────────────────────────────────────────────────
 
   static Future<void> _rotateIfNeeded(int incomingBytes) async {
     final file = _logFile;
@@ -184,7 +248,7 @@ class DebugLogger {
 
   // ── Print capture ─────────────────────────────────────────────────────────
 
-  /// Installs a [debugPrintCallback] that mirrors output to the log file.
+  /// Installs a [debugPrintCallback] that mirrors output to the log store.
   ///
   /// Called automatically by [init]. Safe to call multiple times.
   static void capturePrint() {
@@ -200,100 +264,58 @@ class DebugLogger {
 
   // ── Flutter error capture ─────────────────────────────────────────────────
 
-  /// Hooks into [FlutterError.onError] to capture widget-tree and framework
-  /// errors (parsing errors, layout overflows, assertion failures, etc.).
-  ///
-  /// Chains into any previously installed handler so existing tooling
-  /// (e.g. Crashlytics) continues to work.
-  ///
-  /// Called automatically by [init] when [captureFlutter] is `true`.
+  /// Hooks into [FlutterError.onError] to capture widget-tree and framework errors.
   static void captureFlutterErrors() {
     if (!flutterDebugLoggerEnabled) return;
     final previous = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails details) {
-      // Forward to original handler first (keeps IDE output intact)
       previous?.call(details);
-
       final summary = details.exceptionAsString();
       final library = details.library ?? 'unknown library';
-      write(
-        '[Flutter Error] $library — $summary',
+      writeStructured(
+        message: '[Flutter Error] $library — $summary',
         level: LogLevel.critical,
+        tag: LogTag.flutterError,
+        stackTrace: details.stack?.toString(),
       );
-      if (details.stack != null) {
-        final ts = DateTime.now().toIso8601String();
-        _appendRaw(
-          '[$ts]${LogLevel.critical.tag} STACK:\n${_truncateStack(details.stack!)}\n',
-        );
-      }
-      _appendRaw('\n'); // blank line separates log blocks for filter clarity
     };
   }
 
   // ── Uncaught async / Dart error capture ──────────────────────────────────
 
-  /// Hooks into [PlatformDispatcher.instance.onError] to capture uncaught
-  /// Dart exceptions (including async gaps, isolate errors that reach main,
-  /// and runtime exceptions not caught by a try/catch).
-  ///
-  /// Called automatically by [init] when [captureUncaught] is `true`.
+  /// Hooks into [PlatformDispatcher.instance.onError] to capture uncaught Dart exceptions.
   static void captureUncaughtErrors() {
     if (!flutterDebugLoggerEnabled) return;
     final previous = PlatformDispatcher.instance.onError;
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      write('[App Error] $error', level: LogLevel.critical);
-      final ts = DateTime.now().toIso8601String();
-      _appendRaw(
-          '[$ts]${LogLevel.critical.tag} STACK:\n${_truncateStack(stack)}\n');
-      _appendRaw('\n'); // blank line separates log blocks for filter clarity
-      // Return false to let the default handler also process it (shows red screen in debug)
+      writeStructured(
+        message: '[App Error] $error',
+        level: LogLevel.critical,
+        tag: LogTag.appError,
+        stackTrace: stack.toString(),
+      );
       return previous?.call(error, stack) ?? false;
     };
   }
 
-  // ── Reading ───────────────────────────────────────────────────────────────
-
-  /// Returns the entire log file content, or `null` when empty / unavailable.
-  static Future<String?> readLogContent() async {
-    if (!flutterDebugLoggerEnabled || !_initialized || _logFile == null) {
-      return null;
-    }
-    try {
-      await flush();
-      if (!await _logFile!.exists() || await _logFile!.length() == 0) {
-        return null;
-      }
-      return _logFile!.readAsString();
-    } on Exception catch (_) {
-      return null;
-    }
-  }
-
-  /// Returns the current live log file as individual lines.
-  static Future<List<String>> readLogLines() async {
-    final content = await readLogContent();
-    if (content == null || content.isEmpty) return const <String>[];
-    return const LineSplitter().convert(content);
-  }
-
   // ── Sharing ───────────────────────────────────────────────────────────────
 
-  /// Creates a timestamped snapshot file and returns it (live file untouched).
+  /// Creates a timestamped human-readable snapshot file and returns it.
   static Future<File?> getShareableLogFile() async {
     if (!flutterDebugLoggerEnabled || !_initialized || _logFile == null) {
       return null;
     }
     try {
       await flush();
-      if (!await _logFile!.exists() || await _logFile!.length() == 0) {
-        return null;
-      }
+      if (store.sessions.isEmpty) return null;
       final dir = _logDirectory ?? await getApplicationDocumentsDirectory();
       final ts = DateTime.now()
           .toIso8601String()
           .replaceAll(':', '-')
           .replaceAll('.', '-');
-      return _logFile!.copy('${dir.path}/debug_snapshot_$ts.txt');
+      final snapshot = File('${dir.path}/debug_snapshot_$ts.txt');
+      await snapshot.writeAsString(_serializeToText());
+      return snapshot;
     } on Exception catch (_) {
       return null;
     }
@@ -317,6 +339,17 @@ class DebugLogger {
     }
   }
 
+  static String _serializeToText() {
+    final buf = StringBuffer();
+    var sessionNum = 0;
+    for (final session in store.sessions) {
+      sessionNum++;
+      buf.writeln(session.formatAsText(sessionNum));
+      buf.writeln();
+    }
+    return buf.toString();
+  }
+
   static Future<void> deleteShareableLogFile(File file) async {
     await _deleteIfExists(file);
   }
@@ -329,8 +362,9 @@ class DebugLogger {
 
   // ── Housekeeping ──────────────────────────────────────────────────────────
 
-  /// Wipes the on-disk log file (keeps the [File] handle open).
+  /// Wipes the in-memory store and the on-disk log file.
   static void clearFile() {
+    store.clear();
     if (_logFile == null) return;
     _pendingWrite = _pendingWrite.then((_) async {
       final file = _logFile;
@@ -339,7 +373,7 @@ class DebugLogger {
     }).catchError((_) {});
   }
 
-  /// Waits for all queued writes and clears the live log file.
+  /// Waits for all queued writes and clears the log.
   static Future<void> clearFileAsync() async {
     clearFile();
     await flush();
@@ -388,4 +422,32 @@ class DebugLogger {
   /// Returns whether new log entries are currently accepted.
   static bool get loggingActive =>
       flutterDebugLoggerEnabled && _initialized && _loggingActive;
+
+  // ── Deprecated ────────────────────────────────────────────────────────────
+
+  @Deprecated('Read DebugLogger.store.sessions directly. '
+      'readLogContent() returns the raw .jsonl file which is not human-readable.')
+  static Future<String?> readLogContent() async {
+    if (!flutterDebugLoggerEnabled || !_initialized || _logFile == null) {
+      return null;
+    }
+    try {
+      await flush();
+      if (!await _logFile!.exists() || await _logFile!.length() == 0) {
+        return null;
+      }
+      return _logFile!.readAsString();
+    } on Exception catch (_) {
+      return null;
+    }
+  }
+
+  @Deprecated('Read DebugLogger.store.sessions directly. '
+      'readLogLines() returned raw text lines replaced by structured LogEntry objects.')
+  static Future<List<String>> readLogLines() async {
+    // ignore: deprecated_member_use_from_same_package
+    final content = await readLogContent();
+    if (content == null || content.isEmpty) return const <String>[];
+    return const LineSplitter().convert(content);
+  }
 }

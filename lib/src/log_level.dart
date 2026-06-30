@@ -156,12 +156,33 @@ enum LogTag {
         LogTag.unknown => 'Other Logs',
       };
 
-  // ── Reverse lookup: line → LogTag ─────────────────────────────────────────
+  // ── Reverse lookup: message → LogTag ─────────────────────────────────────
 
-  /// Identifies the [LogTag] for [line] based on embedded tags and indentation.
+  /// Identifies the [LogTag] for a raw [message] string (no timestamp/level prefix).
   ///
-  /// Checked in priority order so `[Response Error]` is matched before
-  /// `[Response]`.
+  /// Prefer this over [fromLine] when working with structured [LogEntry] data.
+  /// Checked in priority order so `[Response Error]` is matched before `[Response]`.
+  static LogTag fromMessage(String message) {
+    if (message.contains('[Response Error]')) return LogTag.responseError;
+    if (message.contains('[Request Body]') ||
+        message.contains('[Response Body]') ||
+        message.contains('[Error Body]')) return LogTag.body;
+    if (message.contains('[cURL]')) return LogTag.curl;
+    if (message.contains('[Logger]')) return LogTag.logger;
+    if (message.contains('[Response]')) return LogTag.response;
+    if (message.contains('[Request]')) return LogTag.request;
+    if (message.contains('[API Error]')) return LogTag.apiError;
+    if (message.contains('[Flutter Error]')) return LogTag.flutterError;
+    if (message.contains('[App Error]')) return LogTag.appError;
+    if (message.contains('[Print]')) return LogTag.printLog;
+    if (message.trimLeft().startsWith('#') ||
+        message.startsWith('    ') ||
+        message.startsWith('\t')) return LogTag.stackTrace;
+    return LogTag.unknown;
+  }
+
+  @Deprecated('Use LogTag.fromMessage() instead. fromLine() expects the old '
+      'text-format line with timestamp/level prefix which no longer exists.')
   static LogTag fromLine(String line) {
     if (line.contains('====') || line.contains('SESSION START')) {
       return LogTag.separator;
