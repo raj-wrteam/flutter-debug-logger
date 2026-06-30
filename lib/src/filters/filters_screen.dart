@@ -21,11 +21,13 @@ class FiltersScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: FilterState.instance.selectAllTags,
-            child: const Text('All', style: TextStyle(color: Colors.orangeAccent, fontSize: 14)),
+            child: const Text('All',
+                style: TextStyle(color: Colors.orangeAccent, fontSize: 14)),
           ),
           TextButton(
             onPressed: FilterState.instance.deselectAllTags,
-            child: const Text('None', style: TextStyle(color: Colors.white38, fontSize: 14)),
+            child: const Text('None',
+                style: TextStyle(color: Colors.white38, fontSize: 14)),
           ),
           const SizedBox(width: 8),
         ],
@@ -42,12 +44,15 @@ class FiltersScreen extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: LogLevel.values.map((level) => _FilterChip(
-                  label: level.label,
-                  selected: FilterState.instance.activeLevels.contains(level),
-                  color: level.chipColor,
-                  onTap: () => FilterState.instance.toggleLevel(level),
-                )).toList(),
+                children: LogLevel.values
+                    .map((level) => _FilterChip(
+                          label: level.label,
+                          selected:
+                              FilterState.instance.activeLevels.contains(level),
+                          color: level.chipColor,
+                          onTap: () => FilterState.instance.toggleLevel(level),
+                        ))
+                    .toList(),
               ),
               const SizedBox(height: 24),
               const Divider(color: Colors.white12, height: 1),
@@ -58,16 +63,28 @@ class FiltersScreen extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  LogTag.curl, LogTag.request, LogTag.response, LogTag.body,
-                  LogTag.apiError, LogTag.responseError, LogTag.flutterError,
-                  LogTag.appError, LogTag.printLog, LogTag.stackTrace,
-                  LogTag.separator, LogTag.logger, LogTag.unknown,
-                ].map((tag) => _FilterChip(
-                  label: tag.label,
-                  selected: FilterState.instance.activeTags.contains(tag),
-                  color: tag.color,
-                  onTap: () => FilterState.instance.toggleTag(tag),
-                )).toList(),
+                  LogTag.curl,
+                  LogTag.request,
+                  LogTag.response,
+                  LogTag.body,
+                  LogTag.apiError,
+                  LogTag.responseError,
+                  LogTag.flutterError,
+                  LogTag.appError,
+                  LogTag.printLog,
+                  LogTag.stackTrace,
+                  LogTag.separator,
+                  LogTag.logger,
+                  LogTag.unknown,
+                ]
+                    .map((tag) => _FilterChip(
+                          label: tag.label,
+                          selected:
+                              FilterState.instance.activeTags.contains(tag),
+                          color: tag.color,
+                          onTap: () => FilterState.instance.toggleTag(tag),
+                        ))
+                    .toList(),
               ),
               const SizedBox(height: 32),
             ],
@@ -87,8 +104,10 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.white38, fontSize: 11,
-        fontWeight: FontWeight.bold, letterSpacing: 1.0,
+        color: Colors.white38,
+        fontSize: 11,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.0,
       ),
     );
   }
@@ -125,7 +144,8 @@ class _FilterChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 6, height: 6,
+              width: 6,
+              height: 6,
               decoration: BoxDecoration(
                 color: selected ? color : color.withAlpha(102),
                 shape: BoxShape.circle,

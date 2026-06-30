@@ -32,7 +32,8 @@ class LogSessionHeader extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 3, height: 14,
+              width: 3,
+              height: 14,
               decoration: BoxDecoration(
                 color: Colors.orangeAccent,
                 borderRadius: BorderRadius.circular(2),

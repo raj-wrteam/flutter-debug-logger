@@ -16,28 +16,30 @@ class LogEntryRow extends StatelessWidget {
   final int sessionNumber;
   final String query;
 
-  static const _mono = TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5);
+  static const _mono =
+      TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5);
 
   String _slug() {
     final meta = entry.metadata;
     switch (entry.tag) {
       case LogTag.request:
         final method = meta['method'] as String?;
-        final url    = meta['url']    as String?;
+        final url = meta['url'] as String?;
         if (method != null && url != null) return '$method ${_pathOnly(url)}';
       case LogTag.response:
         final status = meta['statusCode'];
-        final url    = meta['url'] as String?;
-        final ms     = meta['durationMs'];
+        final url = meta['url'] as String?;
+        final ms = meta['durationMs'];
         if (status != null && url != null) {
           return '$status ${_pathOnly(url)}${ms != null ? '  ${ms}ms' : ''}';
         }
       case LogTag.apiError:
         final status = meta['statusCode'];
-        final url    = meta['url'] as String?;
-        if (url != null) return status != null ? '$status ${_pathOnly(url)}' : _pathOnly(url);
+        final url = meta['url'] as String?;
+        if (url != null)
+          return status != null ? '$status ${_pathOnly(url)}' : _pathOnly(url);
       case LogTag.curl:
-        final raw    = _stripPrefix(entry.message);
+        final raw = _stripPrefix(entry.message);
         final mMatch = RegExp(r'-X\s+(\w+)').firstMatch(raw);
         final uMatch = RegExp(r"'(https?://[^'?]+)").firstMatch(raw);
         if (mMatch != null && uMatch != null) {
@@ -60,9 +62,19 @@ class LogEntryRow extends StatelessWidget {
 
   static String _stripPrefix(String msg) {
     const prefixes = [
-      '[Response Error]', '[Request Body]', '[Response Body]', '[Error Body]',
-      '[cURL]', '[Logger]', '[Response]', '[Request]', '[API Error]',
-      '[Flutter Error]', '[App Error]', '[Print]', 'EXCEPTION:',
+      '[Response Error]',
+      '[Request Body]',
+      '[Response Body]',
+      '[Error Body]',
+      '[cURL]',
+      '[Logger]',
+      '[Response]',
+      '[Request]',
+      '[API Error]',
+      '[Flutter Error]',
+      '[App Error]',
+      '[Print]',
+      'EXCEPTION:',
     ];
     for (final p in prefixes) {
       if (msg.startsWith(p)) {
@@ -114,7 +126,8 @@ class LogEntryRow extends StatelessWidget {
                 _mono.copyWith(color: entry.tag.color),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white24),
+            const Icon(Icons.chevron_right_rounded,
+                size: 14, color: Colors.white24),
           ],
         ),
       ),
@@ -132,14 +145,15 @@ class LogEntryRow extends StatelessWidget {
         textScaler: TextScaler.noScaling,
       );
     }
-    final lower  = text.toLowerCase();
+    final lower = text.toLowerCase();
     final lowerQ = q.toLowerCase();
-    final spans  = <TextSpan>[];
+    final spans = <TextSpan>[];
     var start = 0;
     while (true) {
       final match = lower.indexOf(lowerQ, start);
       if (match < 0) break;
-      if (match > start) spans.add(TextSpan(text: text.substring(start, match)));
+      if (match > start)
+        spans.add(TextSpan(text: text.substring(start, match)));
       spans.add(TextSpan(
         text: text.substring(match, match + q.length),
         style: const TextStyle(

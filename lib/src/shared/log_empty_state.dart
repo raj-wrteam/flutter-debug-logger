@@ -12,7 +12,8 @@ class LogEmptyState extends StatelessWidget {
         children: [
           const Icon(Icons.article_outlined, color: Colors.white12, size: 48),
           const SizedBox(height: 12),
-          Text(text, style: const TextStyle(color: Colors.white30, fontSize: 14)),
+          Text(text,
+              style: const TextStyle(color: Colors.white30, fontSize: 14)),
         ],
       ),
     );

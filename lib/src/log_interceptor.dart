@@ -132,8 +132,7 @@ class FlutterDebugLogInterceptor extends Interceptor {
   int _elapsedMs(RequestOptions options) {
     final startedAt = options.extra[_startedAtKey];
     if (startedAt is! int) return 0;
-    return ((DateTime.now().microsecondsSinceEpoch - startedAt) / 1000)
-        .round();
+    return ((DateTime.now().microsecondsSinceEpoch - startedAt) / 1000).round();
   }
 
   // ── Interceptor overrides ─────────────────────────────────────────────────
@@ -210,8 +209,7 @@ class FlutterDebugLogInterceptor extends Interceptor {
       if (response.data case final Map<String, dynamic> data
           when data['error'] == true) {
         DebugLogger.writeStructured(
-          message:
-              '[Response Error]$_prefix ${response.requestOptions.path} '
+          message: '[Response Error]$_prefix ${response.requestOptions.path} '
               '— ${data['message']} — $data',
           level: LogLevel.error,
           tag: LogTag.responseError,

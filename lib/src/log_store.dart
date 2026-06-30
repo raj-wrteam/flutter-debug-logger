@@ -8,8 +8,7 @@ class LogStore extends ChangeNotifier {
 
   List<LogSession> get sessions => List.unmodifiable(_sessions);
 
-  LogSession? get currentSession =>
-      _sessions.isEmpty ? null : _sessions.last;
+  LogSession? get currentSession => _sessions.isEmpty ? null : _sessions.last;
 
   void startSession(String sessionId, DateTime startTime) {
     _sessions.add(LogSession(id: sessionId, startTime: startTime));
@@ -31,8 +30,7 @@ class LogStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  LogEntry entryFromJson(Map<String, dynamic> json) =>
-      LogEntry.fromJson(json);
+  LogEntry entryFromJson(Map<String, dynamic> json) => LogEntry.fromJson(json);
 
   Map<String, dynamic> entryToJson(LogEntry entry) => entry.toJson();
 }

@@ -67,8 +67,7 @@ class LogEntry {
     }
     if (stackTrace != null) {
       buf.writeln('Stack:');
-      for (final line
-          in stackTrace!.split('\n').where((l) => l.isNotEmpty)) {
+      for (final line in stackTrace!.split('\n').where((l) => l.isNotEmpty)) {
         buf.writeln('  $line');
       }
     }

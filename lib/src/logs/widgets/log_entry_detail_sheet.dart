@@ -40,7 +40,8 @@ class LogEntryDetailSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 decoration: BoxDecoration(
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(2),
@@ -145,7 +146,8 @@ class LogEntryDetailSheet extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () async {
                             await Clipboard.setData(ClipboardData(
-                              text: entry.formatAsText(sessionNumber: sessionNumber),
+                              text: entry.formatAsText(
+                                  sessionNumber: sessionNumber),
                             ));
                             if (context.mounted) {
                               Navigator.pop(context);
@@ -172,7 +174,8 @@ class LogEntryDetailSheet extends StatelessWidget {
                           onPressed: () async {
                             Navigator.pop(context);
                             await SharePlus.instance.share(ShareParams(
-                              text: entry.formatAsText(sessionNumber: sessionNumber),
+                              text: entry.formatAsText(
+                                  sessionNumber: sessionNumber),
                               subject: 'Log Entry',
                             ));
                           },
@@ -265,13 +268,15 @@ class _MetaRow extends StatelessWidget {
       child: RichText(
         textScaler: TextScaler.noScaling,
         text: TextSpan(
-          style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5),
+          style: const TextStyle(
+              fontFamily: 'monospace', fontSize: 13, height: 1.5),
           children: [
             TextSpan(
               text: '${label.padRight(12)}: ',
               style: const TextStyle(color: Colors.white38),
             ),
-            TextSpan(text: value, style: const TextStyle(color: Colors.white70)),
+            TextSpan(
+                text: value, style: const TextStyle(color: Colors.white70)),
           ],
         ),
       ),

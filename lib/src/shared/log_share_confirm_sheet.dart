@@ -11,15 +11,19 @@ class LogShareConfirmSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 36, height: 4,
-            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+                color: Colors.white24, borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(height: 24),
-          const Icon(Icons.delete_sweep_outlined, color: Colors.orangeAccent, size: 36),
+          const Icon(Icons.delete_sweep_outlined,
+              color: Colors.orangeAccent, size: 36),
           const SizedBox(height: 16),
           const Text(
             'Share & Clear Logs',
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
           const Text(
@@ -38,7 +42,8 @@ class LogShareConfirmSheet extends StatelessWidget {
                     foregroundColor: Colors.white54,
                     side: const BorderSide(color: Colors.white12),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   child: const Text('Cancel'),
                 ),
@@ -52,9 +57,11 @@ class LogShareConfirmSheet extends StatelessWidget {
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Share & Clear', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text('Share & Clear',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
             ],

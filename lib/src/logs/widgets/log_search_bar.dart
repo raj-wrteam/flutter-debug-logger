@@ -51,7 +51,8 @@ class LogSearchBar extends StatelessWidget {
               onTap: onClear,
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
-                child: Icon(Icons.close_rounded, color: Colors.white38, size: 18),
+                child:
+                    Icon(Icons.close_rounded, color: Colors.white38, size: 18),
               ),
             ),
         ],
