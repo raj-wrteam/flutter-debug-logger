@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../debug_logger.dart';
 import '../filters/filter_state.dart';
 import '../shared/app_colors.dart';
+import '../shared/custom_app_bar.dart';
 import '../shared/log_share_confirm_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -118,14 +119,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Settings & Actions',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+      appBar: const CustomAppBar(
+        title: 'Settings & Actions',
       ),
       body: ListenableBuilder(
         listenable: FilterState.instance,

@@ -5,6 +5,7 @@ import '../debug_logger.dart';
 import '../logs/all_logs_screen.dart';
 import '../models/log_session.dart';
 import '../shared/app_colors.dart';
+import '../shared/custom_app_bar.dart';
 import '../shared/log_empty_state.dart';
 
 class SessionsScreen extends StatelessWidget {
@@ -14,14 +15,8 @@ class SessionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Sessions',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+      appBar: const CustomAppBar(
+        title: 'Sessions',
       ),
       body: ListenableBuilder(
         listenable: DebugLogger.store,

@@ -7,6 +7,7 @@ import '../filters/filters_screen.dart';
 import '../models/log_entry.dart';
 import '../models/log_session.dart';
 import '../shared/app_colors.dart';
+import '../shared/custom_app_bar.dart';
 import '../shared/log_empty_state.dart';
 import 'widgets/log_entry_row.dart';
 import 'widgets/log_search_bar.dart';
@@ -143,14 +144,8 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+      appBar: CustomAppBar(
+        title: title,
         actions: [
           Stack(
             alignment: Alignment.topRight,

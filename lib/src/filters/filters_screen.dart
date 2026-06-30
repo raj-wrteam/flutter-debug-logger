@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../log_level.dart';
 import '../shared/app_colors.dart';
+import '../shared/custom_app_bar.dart';
 import 'filter_state.dart';
 
 class FiltersScreen extends StatelessWidget {
@@ -10,14 +11,8 @@ class FiltersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Filters & Tags',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+      appBar: CustomAppBar(
+        title: 'Filters & Tags',
         actions: [
           TextButton(
             onPressed: FilterState.instance.selectAllTags,
