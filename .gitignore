@@ -6,6 +6,7 @@
 .flutter-plugins
 .flutter-plugins-dependencies
 .superpowers
+.claude
 
 # OS-specific files
 .DS_Store
