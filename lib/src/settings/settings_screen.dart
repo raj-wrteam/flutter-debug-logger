@@ -141,14 +141,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               activeThumbColor: Colors.orangeAccent,
               inactiveTrackColor: Colors.white12,
             ),
-            SwitchListTile(
-              title: const Text('Auto-scroll',
-                  style: TextStyle(color: Colors.white, fontSize: 14)),
-              value: FilterState.instance.autoScroll,
-              onChanged: (_) => FilterState.instance.toggleAutoScroll(),
-              activeThumbColor: Colors.orangeAccent,
-              inactiveTrackColor: Colors.white12,
-            ),
             const Divider(
                 color: Colors.white10, height: 1, indent: 16, endIndent: 16),
             const _SectionHeader('EXPORT'),
@@ -200,7 +192,7 @@ class _SectionHeader extends StatelessWidget {
         text,
         style: const TextStyle(
           color: Colors.white38,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
         ),

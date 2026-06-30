@@ -58,7 +58,7 @@ class _StatCard extends StatelessWidget {
             '$count',
             style: TextStyle(
               color: level.chipColor,
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               fontFamily: 'monospace',
             ),
@@ -66,7 +66,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             level.label,
-            style: const TextStyle(color: Colors.white38, fontSize: 10),
+            style: const TextStyle(color: Colors.white38, fontSize: 11),
           ),
         ],
       ),

@@ -130,23 +130,6 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
     return 'Showing $_visibleEntries/$_totalEntries · $levels';
   }
 
-  // ── Scroll ───────────────────────────────────────────────────────────────────
-
-  void _scheduleAutoScroll({bool force = false}) {
-    if (!FilterState.instance.autoScroll && !force) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
-      final target = FilterState.instance.latestFirst
-          ? _scrollController.position.minScrollExtent
-          : _scrollController.position.maxScrollExtent;
-      _scrollController.animateTo(
-        target,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
-    });
-  }
-
   // ── Build ────────────────────────────────────────────────────────────────────
 
   @override
@@ -207,12 +190,10 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
             query: _query,
             onChanged: (v) {
               setState(() => _query = v);
-              _scheduleAutoScroll();
             },
             onClear: () {
               _searchController.clear();
               setState(() => _query = '');
-              _scheduleAutoScroll();
             },
           ),
           ListenableBuilder(
@@ -239,7 +220,7 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                               _buildFilterSummary(),
                               style: const TextStyle(
                                 color: Colors.white38,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontFamily: 'monospace',
                               ),
                             ),
@@ -271,8 +252,6 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
         if (!hasFiltered) {
           return const LogEmptyState(text: 'No matching logs.');
         }
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) => _scheduleAutoScroll());
         final items = _buildDisplayItems();
         return Scrollbar(
           controller: _scrollController,

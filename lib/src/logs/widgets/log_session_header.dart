@@ -43,7 +43,7 @@ class LogSessionHeader extends StatelessWidget {
               'SESSION #$sessionNumber',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
                 fontFamily: 'monospace',
@@ -54,7 +54,7 @@ class LogSessionHeader extends StatelessWidget {
               _formatHeader(session.startTime),
               style: const TextStyle(
                 color: Colors.white38,
-                fontSize: 10,
+                fontSize: 11,
                 fontFamily: 'monospace',
               ),
             ),
@@ -63,7 +63,7 @@ class LogSessionHeader extends StatelessWidget {
               '${session.entries.length} entries',
               style: const TextStyle(
                 color: Colors.white38,
-                fontSize: 10,
+                fontSize: 11,
                 fontFamily: 'monospace',
               ),
             ),

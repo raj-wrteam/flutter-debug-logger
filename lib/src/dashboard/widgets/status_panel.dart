@@ -86,7 +86,7 @@ class _StatusPanelState extends State<StatusPanel>
                     active ? 'ACTIVE' : 'PAUSED',
                     style: TextStyle(
                       color: dotColor,
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.0,
                       fontFamily: 'monospace',
@@ -106,7 +106,7 @@ class _StatusPanelState extends State<StatusPanel>
                       child: Text(
                         active ? 'Pause logging' : 'Resume logging',
                         style: const TextStyle(
-                            color: Colors.white70, fontSize: 11),
+                            color: Colors.white70, fontSize: 12),
                       ),
                     ),
                   ),
@@ -117,7 +117,7 @@ class _StatusPanelState extends State<StatusPanel>
                 '${_fileSizeLabel()}  ·  $_totalEntries entries',
                 style: const TextStyle(
                   color: Colors.white38,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontFamily: 'monospace',
                 ),
               ),

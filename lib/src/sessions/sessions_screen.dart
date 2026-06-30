@@ -83,7 +83,7 @@ class _SessionCard extends StatelessWidget {
                   '#$sessionNumber',
                   style: const TextStyle(
                     color: Colors.orangeAccent,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     fontFamily: 'monospace',
                   ),
@@ -99,7 +99,7 @@ class _SessionCard extends StatelessWidget {
                     _formatHeader(session.startTime),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -108,7 +108,7 @@ class _SessionCard extends StatelessWidget {
                     '${session.entries.length} entries',
                     style: const TextStyle(
                       color: Colors.white38,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontFamily: 'monospace',
                     ),
                   ),

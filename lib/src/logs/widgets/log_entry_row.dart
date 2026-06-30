@@ -16,7 +16,7 @@ class LogEntryRow extends StatelessWidget {
   final int sessionNumber;
   final String query;
 
-  static const _mono = TextStyle(fontFamily: 'monospace', fontSize: 11, height: 1.5);
+  static const _mono = TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5);
 
   String _slug() {
     final meta = entry.metadata;
@@ -101,7 +101,7 @@ class LogEntryRow extends StatelessWidget {
               time,
               style: const TextStyle(
                 color: Colors.white24,
-                fontSize: 10,
+                fontSize: 11,
                 fontFamily: 'monospace',
               ),
             ),
@@ -177,7 +177,7 @@ class _TagChip extends StatelessWidget {
         tag.label,
         style: TextStyle(
           color: tag.color,
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.3,
         ),

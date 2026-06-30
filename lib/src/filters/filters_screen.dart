@@ -21,11 +21,11 @@ class FiltersScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: FilterState.instance.selectAllTags,
-            child: const Text('All', style: TextStyle(color: Colors.orangeAccent, fontSize: 13)),
+            child: const Text('All', style: TextStyle(color: Colors.orangeAccent, fontSize: 14)),
           ),
           TextButton(
             onPressed: FilterState.instance.deselectAllTags,
-            child: const Text('None', style: TextStyle(color: Colors.white38, fontSize: 13)),
+            child: const Text('None', style: TextStyle(color: Colors.white38, fontSize: 14)),
           ),
           const SizedBox(width: 8),
         ],
@@ -87,7 +87,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.white38, fontSize: 10,
+        color: Colors.white38, fontSize: 11,
         fontWeight: FontWeight.bold, letterSpacing: 1.0,
       ),
     );
@@ -136,7 +136,7 @@ class _FilterChip extends StatelessWidget {
               label,
               style: TextStyle(
                 color: selected ? Colors.white : Colors.white54,
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),

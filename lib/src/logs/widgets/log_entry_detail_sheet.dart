@@ -18,7 +18,7 @@ class LogEntryDetailSheet extends StatelessWidget {
 
   static const _mono = TextStyle(
     fontFamily: 'monospace',
-    fontSize: 11,
+    fontSize: 13,
     height: 1.6,
     color: Colors.white70,
   );
@@ -59,7 +59,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                     _formatTime(entry.timestamp),
                     style: const TextStyle(
                       color: Colors.white38,
-                      fontSize: 11,
+                      fontSize: 13,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -118,7 +118,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                             'Copy',
                             style: TextStyle(
                               color: Colors.orangeAccent,
-                              fontSize: 11,
+                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -134,7 +134,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                       ),
                       child: SelectableText(
                         entry.stackTrace!,
-                        style: _mono.copyWith(fontSize: 10),
+                        style: _mono.copyWith(fontSize: 11),
                       ),
                     ),
                   ],
@@ -218,7 +218,7 @@ class _LevelBadge extends StatelessWidget {
         level.label.toUpperCase(),
         style: TextStyle(
           color: level.chipColor,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),
@@ -244,7 +244,7 @@ class _TagBadge extends StatelessWidget {
         tag.label,
         style: TextStyle(
           color: tag.color,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.3,
         ),
@@ -265,7 +265,7 @@ class _MetaRow extends StatelessWidget {
       child: RichText(
         textScaler: TextScaler.noScaling,
         text: TextSpan(
-          style: const TextStyle(fontFamily: 'monospace', fontSize: 11, height: 1.5),
+          style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5),
           children: [
             TextSpan(
               text: '${label.padRight(12)}: ',
@@ -289,7 +289,7 @@ class _SheetSectionLabel extends StatelessWidget {
       text,
       style: const TextStyle(
         color: Colors.white38,
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.0,
       ),

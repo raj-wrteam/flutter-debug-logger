@@ -97,7 +97,7 @@ class _NavTile extends StatelessWidget {
                 label,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -114,7 +114,7 @@ class _NavTile extends StatelessWidget {
                   badge!,
                   style: const TextStyle(
                     color: Colors.orangeAccent,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
