@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'debug_logger.dart';
-import 'log_viewer_screen.dart';
+import 'dashboard/dashboard_screen.dart';
 
 /// Wraps your app (or any subtree) with a persistent floating debug button.
 ///
@@ -26,7 +27,8 @@ class FlutterDebugLogger extends StatelessWidget {
   final Widget child;
 
   /// Convenience factory — identical to `FlutterDebugLogger(child: child)`.
-  static Widget wrap({required Widget child}) => FlutterDebugLogger(child: child);
+  static Widget wrap({required Widget child}) =>
+      FlutterDebugLogger(child: child);
 
   /// Use this as `MaterialApp(builder: FlutterDebugLogger.overlay)`.
   static Widget overlay(BuildContext context, Widget? child) =>
@@ -97,8 +99,8 @@ class _DebugFabOverlayState extends State<_DebugFabOverlay> {
                     setState(() => _isDebugScreenOpen = true);
                     nav
                         .push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const DebugLogViewerScreen(),
+                      CupertinoPageRoute<void>(
+                        builder: (_) => const DashboardScreen(),
                       ),
                     )
                         .then((_) {

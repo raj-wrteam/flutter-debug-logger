@@ -173,8 +173,11 @@ class DebugLogger {
       final file = _logFile;
       if (file == null) return;
       await file.create(recursive: true);
-      final line =
-          '${jsonEncode({'tag': 'sessionStart', 'sessionId': sessionId, 'ts': startTime.toIso8601String()})}\n';
+      final line = '${jsonEncode({
+            'tag': 'sessionStart',
+            'sessionId': sessionId,
+            'ts': startTime.toIso8601String()
+          })}\n';
       await file.writeAsString(line, mode: FileMode.writeOnlyAppend);
     }).catchError((_) {});
   }
@@ -202,7 +205,19 @@ class DebugLogger {
           );
           loadedSessions.add(current);
         } else {
-          current?.addEntry(store.entryFromJson(json));
+          // If entries exist before any sessionStart (e.g. after a clear+restart
+          // race condition), create an implicit session so they are not lost.
+          if (current == null) {
+            final ts = json['ts'] != null
+                ? DateTime.tryParse(json['ts'] as String) ?? DateTime.now()
+                : DateTime.now();
+            current = LogSession(
+              id: 'recovered-${ts.microsecondsSinceEpoch}',
+              startTime: ts,
+            );
+            loadedSessions.add(current);
+          }
+          current.addEntry(store.entryFromJson(json));
         }
       } catch (_) {
         // Skip malformed lines silently.
