@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/log_session.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/custom_text.dart';
 
 class LogSessionHeader extends StatelessWidget {
   const LogSessionHeader({
@@ -40,7 +41,7 @@ class LogSessionHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Text(
+            CustomText(
               'SESSION #$sessionNumber',
               style: const TextStyle(
                 color: Colors.white,
@@ -51,7 +52,7 @@ class LogSessionHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
+            CustomText(
               _formatHeader(session.startTime),
               style: const TextStyle(
                 color: Colors.white38,
@@ -60,7 +61,7 @@ class LogSessionHeader extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Text(
+            CustomText(
               '${session.entries.length} entries',
               style: const TextStyle(
                 color: Colors.white38,

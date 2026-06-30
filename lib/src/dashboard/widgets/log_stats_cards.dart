@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../debug_logger.dart';
 import '../../log_level.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/custom_text.dart';
 
 class LogStatsCards extends StatelessWidget {
   const LogStatsCards({super.key});
@@ -54,7 +55,7 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          CustomText(
             '$count',
             style: TextStyle(
               color: level.chipColor,
@@ -64,7 +65,7 @@ class _StatCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
+          CustomText(
             level.label,
             style: const TextStyle(color: Colors.white38, fontSize: 11),
           ),

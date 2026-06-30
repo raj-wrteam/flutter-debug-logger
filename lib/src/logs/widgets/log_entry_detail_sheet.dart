@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../log_level.dart';
 import '../../models/log_entry.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/custom_text.dart';
 
 class LogEntryDetailSheet extends StatelessWidget {
   const LogEntryDetailSheet({
@@ -56,7 +57,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   _TagBadge(entry.tag),
                   const Spacer(),
-                  Text(
+                  CustomText(
                     _formatTime(entry.timestamp),
                     style: const TextStyle(
                       color: Colors.white38,
@@ -108,14 +109,14 @@ class LogEntryDetailSheet extends StatelessWidget {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Stack trace copied'),
+                                  content: CustomText('Stack trace copied'),
                                   behavior: SnackBarBehavior.floating,
                                   duration: Duration(seconds: 2),
                                 ),
                               );
                             }
                           },
-                          child: const Text(
+                          child: const CustomText(
                             'Copy',
                             style: TextStyle(
                               color: Colors.orangeAccent,
@@ -153,7 +154,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Entry copied'),
+                                  content: CustomText('Entry copied'),
                                   behavior: SnackBarBehavior.floating,
                                   duration: Duration(seconds: 2),
                                 ),
@@ -161,7 +162,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                             }
                           },
                           icon: const Icon(Icons.copy_rounded, size: 16),
-                          label: const Text('Copy Entry'),
+                          label: const CustomText('Copy Entry'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white70,
                             side: const BorderSide(color: Colors.white24),
@@ -180,7 +181,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                             ));
                           },
                           icon: const Icon(Icons.ios_share_outlined, size: 16),
-                          label: const Text('Export'),
+                          label: const CustomText('Export'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white70,
                             side: const BorderSide(color: Colors.white24),
@@ -217,7 +218,7 @@ class _LevelBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: level.chipColor.withAlpha(80)),
       ),
-      child: Text(
+      child: CustomText(
         level.label.toUpperCase(),
         style: TextStyle(
           color: level.chipColor,
@@ -243,7 +244,7 @@ class _TagBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: tag.color.withAlpha(70)),
       ),
-      child: Text(
+      child: CustomText(
         tag.label,
         style: TextStyle(
           color: tag.color,
@@ -265,9 +266,8 @@ class _MetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: RichText(
-        textScaler: TextScaler.noScaling,
-        text: TextSpan(
+      child: CustomText.rich(
+        TextSpan(
           style: const TextStyle(
               fontFamily: 'monospace', fontSize: 13, height: 1.5),
           children: [
@@ -279,6 +279,7 @@ class _MetaRow extends StatelessWidget {
                 text: value, style: const TextStyle(color: Colors.white70)),
           ],
         ),
+        textScaler: TextScaler.noScaling,
       ),
     );
   }
@@ -290,7 +291,7 @@ class _SheetSectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
+    return CustomText(
       text,
       style: const TextStyle(
         color: Colors.white38,

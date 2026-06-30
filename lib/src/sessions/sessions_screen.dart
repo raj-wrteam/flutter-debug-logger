@@ -6,6 +6,7 @@ import '../logs/all_logs_screen.dart';
 import '../models/log_session.dart';
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
+import '../shared/custom_text.dart';
 import '../shared/log_empty_state.dart';
 
 class SessionsScreen extends StatelessWidget {
@@ -74,7 +75,7 @@ class _SessionCard extends StatelessWidget {
                 border: Border.all(color: Colors.orangeAccent.withAlpha(60)),
               ),
               child: Center(
-                child: Text(
+                child: CustomText(
                   '#$sessionNumber',
                   style: const TextStyle(
                     color: Colors.orangeAccent,
@@ -90,7 +91,7 @@ class _SessionCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  CustomText(
                     _formatHeader(session.startTime),
                     style: const TextStyle(
                       color: Colors.white,
@@ -99,7 +100,7 @@ class _SessionCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
+                  CustomText(
                     '${session.entries.length} entries',
                     style: const TextStyle(
                       color: Colors.white38,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'custom_text.dart';
 
 class LogShareConfirmSheet extends StatelessWidget {
   const LogShareConfirmSheet({super.key});
@@ -20,13 +21,13 @@ class LogShareConfirmSheet extends StatelessWidget {
           const Icon(Icons.delete_sweep_outlined,
               color: Colors.orangeAccent, size: 36),
           const SizedBox(height: 16),
-          const Text(
+          const CustomText(
             'Share & Clear Logs',
             style: TextStyle(
                 color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
-          const Text(
+          const CustomText(
             'The log file will be shared, then permanently '
             'deleted from this device. Use export if you want to keep it.',
             textAlign: TextAlign.center,
@@ -45,7 +46,7 @@ class LogShareConfirmSheet extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Cancel'),
+                  child: const CustomText('Cancel'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -60,7 +61,7 @@ class LogShareConfirmSheet extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Share & Clear',
+                  child: const CustomText('Share & Clear',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),

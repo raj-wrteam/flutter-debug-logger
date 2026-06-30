@@ -6,6 +6,7 @@ import '../debug_logger.dart';
 import '../filters/filter_state.dart';
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
+import '../shared/custom_text.dart';
 import '../shared/log_share_confirm_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _snack(String msg) async {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
+      content: CustomText(msg),
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 2),
     ));
@@ -88,24 +89,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.elevated,
-        title: const Text(
+        title: const CustomText(
           'Clear all logs?',
           style: TextStyle(color: Colors.white, fontSize: 16),
         ),
-        content: const Text(
+        content: const CustomText(
           'This will permanently delete all log entries.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white38)),
+            child: const CustomText('Cancel',
+                style: TextStyle(color: Colors.white38)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child:
-                const Text('Clear', style: TextStyle(color: Color(0xFFEF5350))),
+            child: const CustomText('Clear',
+                style: TextStyle(color: Color(0xFFEF5350))),
           ),
         ],
       ),
@@ -129,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const _SectionHeader('DISPLAY'),
             SwitchListTile(
-              title: const Text('Latest first',
+              title: const CustomText('Latest first',
                   style: TextStyle(color: Colors.white, fontSize: 14)),
               value: FilterState.instance.latestFirst,
               onChanged: (_) => FilterState.instance.toggleLatestFirst(),
@@ -183,7 +184,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
+      child: CustomText(
         text,
         style: const TextStyle(
           color: Colors.white38,
@@ -214,7 +215,7 @@ class _ActionTile extends StatelessWidget {
     final c = color ?? Colors.white70;
     return ListTile(
       leading: Icon(icon, color: c, size: 20),
-      title: Text(label, style: TextStyle(color: c, fontSize: 14)),
+      title: CustomText(label, style: TextStyle(color: c, fontSize: 14)),
       onTap: onTap,
     );
   }

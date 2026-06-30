@@ -7,6 +7,7 @@ import '../../logs/all_logs_screen.dart';
 import '../../sessions/sessions_screen.dart';
 import '../../settings/settings_screen.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/custom_text.dart';
 
 class NavGrid extends StatelessWidget {
   const NavGrid({super.key});
@@ -93,7 +94,7 @@ class _NavTile extends StatelessWidget {
             Icon(icon, color: Colors.white54, size: 20),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
+              child: CustomText(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
@@ -110,7 +111,7 @@ class _NavTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.orangeAccent.withAlpha(80)),
                 ),
-                child: Text(
+                child: CustomText(
                   badge!,
                   style: const TextStyle(
                     color: Colors.orangeAccent,

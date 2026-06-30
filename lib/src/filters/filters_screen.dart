@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../log_level.dart';
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
+import '../shared/custom_text.dart';
 import 'filter_state.dart';
 
 class FiltersScreen extends StatelessWidget {
@@ -16,12 +17,12 @@ class FiltersScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: FilterState.instance.selectAllTags,
-            child: const Text('All',
+            child: const CustomText('All',
                 style: TextStyle(color: Colors.orangeAccent, fontSize: 14)),
           ),
           TextButton(
             onPressed: FilterState.instance.deselectAllTags,
-            child: const Text('None',
+            child: const CustomText('None',
                 style: TextStyle(color: Colors.white38, fontSize: 14)),
           ),
           const SizedBox(width: 8),
@@ -96,7 +97,7 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
+    return CustomText(
       text,
       style: const TextStyle(
         color: Colors.white38,
@@ -147,7 +148,7 @@ class _FilterChip extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
+            CustomText(
               label,
               style: TextStyle(
                 color: selected ? Colors.white : Colors.white54,

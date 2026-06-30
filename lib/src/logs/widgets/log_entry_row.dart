@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../log_level.dart';
 import '../../models/log_entry.dart';
+import '../../shared/custom_text.dart';
 import 'log_entry_detail_sheet.dart';
 
 class LogEntryRow extends StatelessWidget {
@@ -109,7 +110,7 @@ class LogEntryRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            CustomText(
               time,
               style: const TextStyle(
                 color: Colors.white24,
@@ -137,7 +138,7 @@ class LogEntryRow extends StatelessWidget {
   Widget _buildHighlightedText(String text, TextStyle style) {
     final q = query.trim();
     if (q.isEmpty) {
-      return Text(
+      return CustomText(
         text,
         style: style,
         maxLines: 1,
@@ -165,7 +166,7 @@ class LogEntryRow extends StatelessWidget {
       start = match + q.length;
     }
     if (start < text.length) spans.add(TextSpan(text: text.substring(start)));
-    return Text.rich(
+    return CustomText.rich(
       TextSpan(style: style, children: spans),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -187,7 +188,7 @@ class _TagChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(3),
         border: Border.all(color: tag.color.withAlpha(80), width: 0.5),
       ),
-      child: Text(
+      child: CustomText(
         tag.label,
         style: TextStyle(
           color: tag.color,

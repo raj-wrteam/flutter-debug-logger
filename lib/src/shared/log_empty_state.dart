@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'custom_text.dart';
 
 class LogEmptyState extends StatelessWidget {
   const LogEmptyState({super.key, required this.text});
@@ -12,7 +13,7 @@ class LogEmptyState extends StatelessWidget {
         children: [
           const Icon(Icons.article_outlined, color: Colors.white12, size: 48),
           const SizedBox(height: 12),
-          Text(text,
+          CustomText(text,
               style: const TextStyle(color: Colors.white30, fontSize: 14)),
         ],
       ),

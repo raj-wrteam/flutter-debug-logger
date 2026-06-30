@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../debug_logger.dart';
 import '../../shared/app_colors.dart';
+import '../../shared/custom_text.dart';
 
 class StatusPanel extends StatefulWidget {
   const StatusPanel({super.key});
@@ -82,7 +83,7 @@ class _StatusPanelState extends State<StatusPanel>
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
+                  CustomText(
                     active ? 'ACTIVE' : 'PAUSED',
                     style: TextStyle(
                       color: dotColor,
@@ -103,7 +104,7 @@ class _StatusPanelState extends State<StatusPanel>
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.white24),
                       ),
-                      child: Text(
+                      child: CustomText(
                         active ? 'Pause logging' : 'Resume logging',
                         style: const TextStyle(
                             color: Colors.white70, fontSize: 12),
@@ -113,7 +114,7 @@ class _StatusPanelState extends State<StatusPanel>
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
+              CustomText(
                 '${_fileSizeLabel()}  ·  $_totalEntries entries',
                 style: const TextStyle(
                   color: Colors.white38,
