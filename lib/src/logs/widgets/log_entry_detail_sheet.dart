@@ -6,6 +6,10 @@ import '../../log_level.dart';
 import '../../models/log_entry.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/custom_text.dart';
+import '../../shared/custom_divider.dart';
+import '../../shared/custom_chip.dart';
+import '../../shared/custom_button.dart';
+import '../../shared/custom_section_header.dart';
 
 class LogEntryDetailSheet extends StatelessWidget {
   const LogEntryDetailSheet({
@@ -68,7 +72,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(color: Colors.white10, height: 1),
+            const CustomDivider(),
             Expanded(
               child: ListView(
                 controller: controller,
@@ -144,7 +148,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: CustomButton(
                           onPressed: () async {
                             await Clipboard.setData(ClipboardData(
                               text: entry.formatAsText(
@@ -161,17 +165,15 @@ class LogEntryDetailSheet extends StatelessWidget {
                               );
                             }
                           },
-                          icon: const Icon(Icons.copy_rounded, size: 16),
-                          label: const CustomText('Copy Entry'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white70,
-                            side: const BorderSide(color: Colors.white24),
-                          ),
+                          icon: Icons.copy_rounded,
+                          label: 'Copy Entry',
+                          foregroundColor: Colors.white70,
+                          side: const BorderSide(color: Colors.white24),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: CustomButton(
                           onPressed: () async {
                             Navigator.pop(context);
                             await SharePlus.instance.share(ShareParams(
@@ -180,12 +182,10 @@ class LogEntryDetailSheet extends StatelessWidget {
                               subject: 'Log Entry',
                             ));
                           },
-                          icon: const Icon(Icons.ios_share_outlined, size: 16),
-                          label: const CustomText('Export'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white70,
-                            side: const BorderSide(color: Colors.white24),
-                          ),
+                          icon: Icons.ios_share_outlined,
+                          label: 'Export',
+                          foregroundColor: Colors.white70,
+                          side: const BorderSide(color: Colors.white24),
                         ),
                       ),
                     ],
@@ -211,22 +211,11 @@ class _LevelBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: level.chipColor.withAlpha(30),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: level.chipColor.withAlpha(80)),
-      ),
-      child: CustomText(
-        level.label.toUpperCase(),
-        style: TextStyle(
-          color: level.chipColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
-      ),
+    return CustomChip(
+      label: level.label.toUpperCase(),
+      color: level.chipColor,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.5,
     );
   }
 }
@@ -237,22 +226,12 @@ class _TagBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: tag.color.withAlpha(25),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: tag.color.withAlpha(70)),
-      ),
-      child: CustomText(
-        tag.label,
-        style: TextStyle(
-          color: tag.color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.3,
-        ),
-      ),
+    return CustomChip(
+      label: tag.label,
+      color: tag.color,
+      textColor: tag.color,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.3,
     );
   }
 }
@@ -291,14 +270,9 @@ class _SheetSectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomText(
+    return CustomSectionHeader(
       text,
-      style: const TextStyle(
-        color: Colors.white38,
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.0,
-      ),
+      padding: EdgeInsets.zero,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
+import '../shared/custom_divider.dart';
 import 'widgets/log_stats_cards.dart';
 import 'widgets/nav_grid.dart';
 import 'widgets/status_panel.dart';
@@ -33,7 +34,7 @@ class DashboardScreen extends StatelessWidget {
             SizedBox(height: 16),
             LogStatsCards(),
             SizedBox(height: 20),
-            Divider(color: Colors.white10, height: 1),
+            CustomDivider(),
             SizedBox(height: 16),
             NavGrid(),
           ],

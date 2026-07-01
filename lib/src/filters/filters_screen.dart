@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../log_level.dart';
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
-import '../shared/custom_text.dart';
+import '../shared/custom_divider.dart';
+import '../shared/custom_chip.dart';
+import '../shared/custom_text_button.dart';
+import '../shared/custom_section_header.dart';
 import 'filter_state.dart';
 
 class FiltersScreen extends StatelessWidget {
@@ -15,15 +18,15 @@ class FiltersScreen extends StatelessWidget {
       appBar: CustomAppBar(
         title: 'Filters & Tags',
         actions: [
-          TextButton(
+          CustomTextButton(
             onPressed: FilterState.instance.selectAllTags,
-            child: const CustomText('All',
-                style: TextStyle(color: Colors.orangeAccent, fontSize: 14)),
+            label: 'All',
+            textColor: Colors.orangeAccent,
           ),
-          TextButton(
+          CustomTextButton(
             onPressed: FilterState.instance.deselectAllTags,
-            child: const CustomText('None',
-                style: TextStyle(color: Colors.white38, fontSize: 14)),
+            label: 'None',
+            textColor: Colors.white38,
           ),
           const SizedBox(width: 8),
         ],
@@ -51,7 +54,7 @@ class FiltersScreen extends StatelessWidget {
                     .toList(),
               ),
               const SizedBox(height: 24),
-              const Divider(color: Colors.white12, height: 1),
+              const CustomDivider(),
               const SizedBox(height: 20),
               const _SectionLabel('LOG TYPES'),
               const SizedBox(height: 12),
@@ -97,14 +100,9 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomText(
+    return CustomSectionHeader(
       text,
-      style: const TextStyle(
-        color: Colors.white38,
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.0,
-      ),
+      padding: EdgeInsets.zero,
     );
   }
 }
@@ -124,41 +122,17 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return CustomChip(
+      label: label,
+      color: color,
+      selected: selected,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? color.withAlpha(31) : const Color(0xFF202020),
-          border: Border.all(
-            color: selected ? color.withAlpha(153) : Colors.white10,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: selected ? color : color.withAlpha(102),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            CustomText(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : Colors.white54,
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
+      borderRadius: 16.0,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      fontSize: 13.0,
+      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      showDot: true,
+      textColor: selected ? Colors.white : Colors.white54,
     );
   }
 }

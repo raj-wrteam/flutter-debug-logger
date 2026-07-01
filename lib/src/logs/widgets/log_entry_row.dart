@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../log_level.dart';
 import '../../models/log_entry.dart';
 import '../../shared/custom_text.dart';
+import '../../shared/custom_chip.dart';
 import 'log_entry_detail_sheet.dart';
 
 class LogEntryRow extends StatelessWidget {
@@ -181,22 +182,14 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return CustomChip(
+      label: tag.label,
+      color: tag.color,
+      borderRadius: 3.0,
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-      decoration: BoxDecoration(
-        color: tag.color.withAlpha(30),
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: tag.color.withAlpha(80), width: 0.5),
-      ),
-      child: CustomText(
-        tag.label,
-        style: TextStyle(
-          color: tag.color,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.3,
-        ),
-      ),
+      fontSize: 10.0,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.3,
     );
   }
 }

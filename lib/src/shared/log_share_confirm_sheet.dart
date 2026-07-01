@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'custom_text.dart';
+import 'custom_button.dart';
 
 class LogShareConfirmSheet extends StatelessWidget {
   const LogShareConfirmSheet({super.key});
@@ -37,32 +38,23 @@ class LogShareConfirmSheet extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: CustomButton(
                   onPressed: () => Navigator.pop(context, false),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white54,
-                    side: const BorderSide(color: Colors.white12),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const CustomText('Cancel'),
+                  label: 'Cancel',
+                  foregroundColor: Colors.white54,
+                  side: const BorderSide(color: Colors.white12),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
+                child: CustomButton(
                   onPressed: () => Navigator.pop(context, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const CustomText('Share & Clear',
-                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  label: 'Share & Clear',
+                  isElevated: true,
+                  backgroundColor: Colors.orangeAccent,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ],

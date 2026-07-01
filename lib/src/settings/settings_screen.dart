@@ -7,6 +7,9 @@ import '../filters/filter_state.dart';
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_text.dart';
+import '../shared/custom_divider.dart';
+import '../shared/custom_section_header.dart';
+import '../shared/custom_text_button.dart';
 import '../shared/log_share_confirm_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -98,15 +101,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(
+          CustomTextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const CustomText('Cancel',
-                style: TextStyle(color: Colors.white38)),
+            label: 'Cancel',
+            textColor: Colors.white38,
           ),
-          TextButton(
+          CustomTextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const CustomText('Clear',
-                style: TextStyle(color: Color(0xFFEF5350))),
+            label: 'Clear',
+            textColor: const Color(0xFFEF5350),
           ),
         ],
       ),
@@ -137,8 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               activeThumbColor: Colors.orangeAccent,
               inactiveTrackColor: Colors.white12,
             ),
-            const Divider(
-                color: Colors.white10, height: 1, indent: 16, endIndent: 16),
+            const CustomDivider(indent: 16, endIndent: 16),
             const _SectionHeader('EXPORT'),
             _ActionTile(
               icon: Icons.ios_share_outlined,
@@ -160,8 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label: 'Share & clear',
               onTap: _shareAndClear,
             ),
-            const Divider(
-                color: Colors.white10, height: 1, indent: 16, endIndent: 16),
+            const CustomDivider(indent: 16, endIndent: 16),
             const _SectionHeader('DANGER ZONE'),
             _ActionTile(
               icon: Icons.delete_outline_rounded,
@@ -182,18 +183,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: CustomText(
-        text,
-        style: const TextStyle(
-          color: Colors.white38,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.0,
-        ),
-      ),
-    );
+    return CustomSectionHeader(text);
   }
 }
 
