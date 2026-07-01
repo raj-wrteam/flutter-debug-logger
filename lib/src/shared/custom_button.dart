@@ -11,6 +11,7 @@ class CustomButton extends StatelessWidget {
   final BorderSide? side;
   final EdgeInsetsGeometry? padding;
   final double borderRadius;
+  final double? fontSize;
 
   const CustomButton({
     super.key,
@@ -23,6 +24,7 @@ class CustomButton extends StatelessWidget {
     this.side,
     this.padding,
     this.borderRadius = 8.0,
+    this.fontSize,
   });
 
   @override
@@ -37,7 +39,7 @@ class CustomButton extends StatelessWidget {
           onPressed: onPressed,
           icon: Icon(icon, size: 16),
           label: CustomText(label,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize)),
           style: ElevatedButton.styleFrom(
             backgroundColor: backgroundColor,
             foregroundColor: foregroundColor,
@@ -57,14 +59,14 @@ class CustomButton extends StatelessWidget {
           shape: shape,
         ),
         child: CustomText(label,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize)),
       );
     } else {
       if (icon != null) {
         return OutlinedButton.icon(
           onPressed: onPressed,
           icon: Icon(icon, size: 16),
-          label: CustomText(label),
+          label: CustomText(label, style: TextStyle(fontSize: fontSize)),
           style: OutlinedButton.styleFrom(
             foregroundColor: foregroundColor,
             side: side,
@@ -81,7 +83,7 @@ class CustomButton extends StatelessWidget {
           padding: padding,
           shape: shape,
         ),
-        child: CustomText(label),
+        child: CustomText(label, style: TextStyle(fontSize: fontSize)),
       );
     }
   }

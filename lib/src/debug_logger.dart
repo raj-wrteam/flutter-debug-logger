@@ -365,6 +365,40 @@ class DebugLogger {
     return buf.toString();
   }
 
+  /// Formats a list of log entries as a human-readable text block.
+  static String serializeEntriesToText(List<LogEntry> entries, {String title = 'Exported Logs'}) {
+    final buf = StringBuffer();
+    buf.writeln(title);
+    buf.writeln('=' * 72);
+    buf.writeln();
+    for (final entry in entries) {
+      final sessionIndex = store.sessions.indexWhere((s) => s.id == entry.sessionId);
+      final sessionNum = sessionIndex >= 0 ? sessionIndex + 1 : 0;
+      buf.writeln(entry.formatAsText(sessionNumber: sessionNum));
+      buf.writeln();
+    }
+    return buf.toString().trimRight();
+  }
+
+  /// Shares arbitrary text content as a temporary file.
+  static Future<void> shareText(String content, {required String fileName, String? subject}) async {
+    if (!flutterDebugLoggerEnabled || !_initialized) return;
+    final dir = _logDirectory ?? await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$fileName');
+    await file.writeAsString(content);
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          subject: subject ?? 'Debug Logs',
+          text: subject ?? 'Debug Logs',
+        ),
+      );
+    } finally {
+      await _deleteIfExists(file);
+    }
+  }
+
   static Future<void> deleteShareableLogFile(File file) async {
     await _deleteIfExists(file);
   }

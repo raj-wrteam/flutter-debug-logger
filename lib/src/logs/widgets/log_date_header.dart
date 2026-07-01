@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../models/log_session.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/custom_text.dart';
 
-class LogSessionHeader extends StatelessWidget {
-  const LogSessionHeader({
+class LogDateHeader extends StatelessWidget {
+  const LogDateHeader({
     super.key,
-    required this.session,
-    required this.sessionNumber,
+    required this.date,
+    required this.entryCount,
     required this.isCollapsed,
     required this.onToggle,
     this.onExtract,
@@ -16,8 +15,8 @@ class LogSessionHeader extends StatelessWidget {
     this.onDelete,
   });
 
-  final LogSession session;
-  final int sessionNumber;
+  final DateTime date;
+  final int entryCount;
   final bool isCollapsed;
   final VoidCallback onToggle;
   final VoidCallback? onExtract;
@@ -42,13 +41,13 @@ class LogSessionHeader extends StatelessWidget {
               width: 3,
               height: 14,
               decoration: BoxDecoration(
-                color: Colors.orangeAccent,
+                color: Colors.blueAccent,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(width: 10),
             CustomText(
-              'SESSION #$sessionNumber',
+              _formatDate(date),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
@@ -57,18 +56,9 @@ class LogSessionHeader extends StatelessWidget {
                 fontFamily: 'monospace',
               ),
             ),
-            const SizedBox(width: 8),
-            CustomText(
-              _formatHeader(session.startTime),
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 11,
-                fontFamily: 'monospace',
-              ),
-            ),
             const Spacer(),
             CustomText(
-              '${session.entries.length} entries',
+              '$entryCount entries',
               style: const TextStyle(
                 color: Colors.white38,
                 fontSize: 11,
@@ -147,8 +137,23 @@ class LogSessionHeader extends StatelessWidget {
     );
   }
 
-  static String _formatHeader(DateTime dt) {
-    String p(int n) => n.toString().padLeft(2, '0');
-    return '${dt.year}-${p(dt.month)}-${p(dt.day)} ${p(dt.hour)}:${p(dt.minute)}';
+  static String _formatDate(DateTime dt) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final month = months[dt.month - 1];
+    final day = dt.day.toString().padLeft(2, '0');
+    return '$month $day, ${dt.year}';
   }
 }

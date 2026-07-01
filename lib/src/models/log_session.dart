@@ -11,6 +11,8 @@ class LogSession {
 
   void addEntry(LogEntry entry) => _entries.add(entry);
 
+  void removeWhere(bool Function(LogEntry) test) => _entries.removeWhere(test);
+
   String formatAsText(int sessionNumber) {
     final header = 'SESSION #$sessionNumber  •  ${_formatHeader(startTime)}'
         '  •  ${_entries.length} entries';

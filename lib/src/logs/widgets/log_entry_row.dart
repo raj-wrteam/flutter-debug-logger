@@ -12,11 +12,15 @@ class LogEntryRow extends StatelessWidget {
     required this.entry,
     required this.sessionNumber,
     required this.query,
+    this.isSelected,
+    this.onSelectedChanged,
   });
 
   final LogEntry entry;
   final int sessionNumber;
   final String query;
+  final bool? isSelected;
+  final ValueChanged<bool?>? onSelectedChanged;
 
   static const _mono =
       TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5);
@@ -94,15 +98,17 @@ class LogEntryRow extends StatelessWidget {
     final time = '${p(t.hour)}:${p(t.minute)}:${p(t.second)}';
 
     return InkWell(
-      onTap: () => showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        builder: (_) => LogEntryDetailSheet(
-          entry: entry,
-          sessionNumber: sessionNumber,
-        ),
-      ),
+      onTap: onSelectedChanged != null
+          ? () => onSelectedChanged!(isSelected != true)
+          : () => showModalBottomSheet<void>(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => LogEntryDetailSheet(
+                  entry: entry,
+                  sessionNumber: sessionNumber,
+                ),
+              ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: const BoxDecoration(
@@ -111,6 +117,14 @@ class LogEntryRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            if (onSelectedChanged != null) ...[
+              Icon(
+                isSelected == true ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                color: isSelected == true ? Colors.orangeAccent : Colors.white24,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+            ],
             CustomText(
               time,
               style: const TextStyle(
@@ -128,8 +142,9 @@ class LogEntryRow extends StatelessWidget {
                 _mono.copyWith(color: entry.tag.color),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                size: 14, color: Colors.white24),
+            if (onSelectedChanged == null)
+              const Icon(Icons.chevron_right_rounded,
+                  size: 14, color: Colors.white24),
           ],
         ),
       ),
