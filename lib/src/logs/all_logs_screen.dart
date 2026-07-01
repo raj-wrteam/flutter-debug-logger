@@ -123,14 +123,16 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
       for (final session in _sessions) {
         for (final e in session.entries) {
           if (_entryPassesFilter(e) && _entryMatchesSearch(e)) {
-            final date = DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day);
+            final date =
+                DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day);
             grouped.putIfAbsent(date, () => []).add(e);
           }
         }
       }
 
       final sortedDates = grouped.keys.toList()
-        ..sort((a, b) => FilterState.instance.latestFirst ? b.compareTo(a) : a.compareTo(b));
+        ..sort((a, b) =>
+            FilterState.instance.latestFirst ? b.compareTo(a) : a.compareTo(b));
 
       for (final date in sortedDates) {
         final entries = grouped[date]!;
@@ -140,7 +142,8 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
         items.add(_DateHeaderItem(date, entries.length));
         if (_collapsedDates.contains(_dateKey(date))) continue;
         for (final e in entries) {
-          final sessionIndex = allSessions.indexWhere((s) => s.id == e.sessionId);
+          final sessionIndex =
+              allSessions.indexWhere((s) => s.id == e.sessionId);
           final sessionNumber = sessionIndex >= 0 ? sessionIndex + 1 : 0;
           items.add(_EntryItem(e, sessionNumber));
         }
@@ -167,14 +170,23 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   // ── Action helpers ───────────────────────────────────────────────────────────
 
   void _extractSession(LogSession session, int sessionNumber) {
-    final entries = session.entries.where(_entryPassesFilter).where(_entryMatchesSearch).toList();
+    final entries = session.entries
+        .where(_entryPassesFilter)
+        .where(_entryMatchesSearch)
+        .toList();
     if (entries.isEmpty) return;
-    final text = DebugLogger.serializeEntriesToText(entries, title: 'Session #$sessionNumber Logs');
-    DebugLogger.shareText(text, fileName: 'session_${sessionNumber}_logs.txt', subject: 'Session #$sessionNumber Logs');
+    final text = DebugLogger.serializeEntriesToText(entries,
+        title: 'Session #$sessionNumber Logs');
+    DebugLogger.shareText(text,
+        fileName: 'session_${sessionNumber}_logs.txt',
+        subject: 'Session #$sessionNumber Logs');
   }
 
   void _selectSession(LogSession session) {
-    final entries = session.entries.where(_entryPassesFilter).where(_entryMatchesSearch).toList();
+    final entries = session.entries
+        .where(_entryPassesFilter)
+        .where(_entryMatchesSearch)
+        .toList();
     setState(() {
       _selectMode = true;
       _selectedEntryIds.clear();
@@ -187,7 +199,8 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Delete Session'),
-        content: Text('Are you sure you want to delete Session #$sessionNumber?'),
+        content:
+            Text('Are you sure you want to delete Session #$sessionNumber?'),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -209,20 +222,28 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   void _extractDate(DateTime date) {
     final entries = _sessions
         .expand((s) => s.entries)
-        .where((e) => DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) == date)
+        .where((e) =>
+            DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
+            date)
         .where(_entryPassesFilter)
         .where(_entryMatchesSearch)
         .toList();
     if (entries.isEmpty) return;
-    final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final text = DebugLogger.serializeEntriesToText(entries, title: 'Logs for $formattedDate');
-    DebugLogger.shareText(text, fileName: 'logs_$formattedDate.txt', subject: 'Logs for $formattedDate');
+    final formattedDate =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final text = DebugLogger.serializeEntriesToText(entries,
+        title: 'Logs for $formattedDate');
+    DebugLogger.shareText(text,
+        fileName: 'logs_$formattedDate.txt',
+        subject: 'Logs for $formattedDate');
   }
 
   void _selectDate(DateTime date) {
     final entries = _sessions
         .expand((s) => s.entries)
-        .where((e) => DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) == date)
+        .where((e) =>
+            DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
+            date)
         .where(_entryPassesFilter)
         .where(_entryMatchesSearch)
         .toList();
@@ -234,12 +255,14 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   }
 
   void _deleteDate(DateTime date) async {
-    final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final formattedDate =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final confirmed = await showCupertinoDialog<bool>(
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Delete Logs by Date'),
-        content: Text('Are you sure you want to delete all logs for $formattedDate?'),
+        content: Text(
+            'Are you sure you want to delete all logs for $formattedDate?'),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -456,7 +479,9 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                     entry: entry,
                     sessionNumber: sessionNumber,
                     query: _query,
-                    isSelected: _selectMode ? _selectedEntryIds.contains(entry.id) : null,
+                    isSelected: _selectMode
+                        ? _selectedEntryIds.contains(entry.id)
+                        : null,
                     onSelectedChanged: _selectMode
                         ? (selected) {
                             setState(() {
@@ -479,93 +504,115 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
 
   Widget _buildBottomActionBar() {
     if (!_selectMode) return const SizedBox.shrink();
+    final count = _selectedEntryIds.length;
+    final hasSelection = count > 0;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: Colors.white10, width: 0.5)),
       ),
       child: SafeArea(
         top: false,
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText(
-              '${_selectedEntryIds.length} selected',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              children: [
+                CustomText(
+                  '$count selected',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    _selectMode = false;
+                    _selectedEntryIds.clear();
+                  }),
+                  child: const CustomText(
+                    'Cancel',
+                    style: TextStyle(color: Colors.orangeAccent, fontSize: 13),
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _selectMode = false;
-                  _selectedEntryIds.clear();
-                });
-              },
-              child: const CustomText(
-                'Cancel',
-                style: TextStyle(color: Colors.white54, fontSize: 13),
-              ),
-            ),
-            const SizedBox(width: 8),
-            CustomButton(
-              onPressed: _selectedEntryIds.isEmpty
-                  ? null
-                  : () {
-                      final entries = _sessions
-                          .expand((s) => s.entries)
-                          .where((e) => _selectedEntryIds.contains(e.id))
-                          .toList();
-                      final text = DebugLogger.serializeEntriesToText(entries, title: 'Selected Logs');
-                      DebugLogger.shareText(text, fileName: 'selected_logs.txt', subject: 'Selected Logs');
-                    },
-              label: 'Extract',
-              fontSize: 12,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white24),
-            ),
-            const SizedBox(width: 8),
-            CustomButton(
-              onPressed: _selectedEntryIds.isEmpty
-                  ? null
-                  : () async {
-                      final confirmed = await showCupertinoDialog<bool>(
-                        context: context,
-                        builder: (context) => CupertinoAlertDialog(
-                          title: const Text('Delete Selected Logs'),
-                          content: Text('Are you sure you want to delete ${_selectedEntryIds.length} selected log entries?'),
-                          actions: [
-                            CupertinoDialogAction(
-                              child: const Text('Cancel'),
-                              onPressed: () => Navigator.pop(context, false),
-                            ),
-                            CupertinoDialogAction(
-                              isDestructiveAction: true,
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirmed == true) {
-                        DebugLogger.store.deleteEntries(_selectedEntryIds);
-                        setState(() {
-                          _selectMode = false;
-                          _selectedEntryIds.clear();
-                        });
-                      }
-                    },
-              label: 'Delete',
-              fontSize: 12,
-              backgroundColor: Colors.redAccent.withAlpha(40),
-              foregroundColor: Colors.redAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              side: const BorderSide(color: Colors.redAccent),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    onPressed: hasSelection
+                        ? () {
+                            final entries = _sessions
+                                .expand((s) => s.entries)
+                                .where((e) => _selectedEntryIds.contains(e.id))
+                                .toList();
+                            final text = DebugLogger.serializeEntriesToText(
+                                entries,
+                                title: 'Selected Logs');
+                            DebugLogger.shareText(text,
+                                fileName: 'selected_logs.txt',
+                                subject: 'Selected Logs');
+                          }
+                        : null,
+                    icon: Icons.ios_share_outlined,
+                    label: 'Extract',
+                    fontSize: 12,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CustomButton(
+                    onPressed: hasSelection
+                        ? () async {
+                            final confirmed = await showCupertinoDialog<bool>(
+                              context: context,
+                              builder: (ctx) => CupertinoAlertDialog(
+                                title: const Text('Delete Selected'),
+                                content:
+                                    Text('Delete $count selected log entries?'),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: const Text('Cancel'),
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                  ),
+                                  CupertinoDialogAction(
+                                    isDestructiveAction: true,
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true) {
+                              DebugLogger.store
+                                  .deleteEntries(_selectedEntryIds);
+                              setState(() {
+                                _selectMode = false;
+                                _selectedEntryIds.clear();
+                              });
+                            }
+                          }
+                        : null,
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Delete',
+                    fontSize: 12,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

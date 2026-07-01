@@ -32,6 +32,10 @@ class CustomButton extends StatelessWidget {
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(borderRadius),
     );
+    final disabledFg = (foregroundColor ?? Colors.white).withAlpha(77);
+    final disabledSide = side != null
+        ? BorderSide(color: side!.color.withAlpha(50), width: side!.width)
+        : null;
 
     if (isElevated) {
       if (icon != null) {
@@ -39,10 +43,12 @@ class CustomButton extends StatelessWidget {
           onPressed: onPressed,
           icon: Icon(icon, size: 16),
           label: CustomText(label,
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize)),
+              style:
+                  TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize)),
           style: ElevatedButton.styleFrom(
             backgroundColor: backgroundColor,
             foregroundColor: foregroundColor,
+            disabledForegroundColor: disabledFg,
             padding: padding,
             elevation: 0,
             shape: shape,
@@ -54,6 +60,7 @@ class CustomButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
+          disabledForegroundColor: disabledFg,
           padding: padding,
           elevation: 0,
           shape: shape,
@@ -69,7 +76,8 @@ class CustomButton extends StatelessWidget {
           label: CustomText(label, style: TextStyle(fontSize: fontSize)),
           style: OutlinedButton.styleFrom(
             foregroundColor: foregroundColor,
-            side: side,
+            disabledForegroundColor: disabledFg,
+            side: onPressed == null ? disabledSide : side,
             padding: padding,
             shape: shape,
           ),
@@ -79,7 +87,8 @@ class CustomButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: foregroundColor,
-          side: side,
+          disabledForegroundColor: disabledFg,
+          side: onPressed == null ? disabledSide : side,
           padding: padding,
           shape: shape,
         ),
