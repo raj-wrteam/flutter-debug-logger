@@ -133,6 +133,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const _SectionHeader('DISPLAY'),
             SwitchListTile(
+              tileColor: AppColors.background,
               title: const CustomText('Latest first',
                   style: TextStyle(color: Colors.white, fontSize: 14)),
               value: FilterState.instance.latestFirst,
@@ -204,6 +205,7 @@ class _ActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = color ?? Colors.white70;
     return ListTile(
+      tileColor: AppColors.background,
       leading: Icon(icon, color: c, size: 20),
       title: CustomText(label, style: TextStyle(color: c, fontSize: 14)),
       onTap: onTap,
