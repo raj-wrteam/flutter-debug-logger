@@ -10,6 +10,7 @@ import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
+import '../shared/debug_theme.dart';
 import '../shared/log_empty_state.dart';
 import 'widgets/log_date_header.dart';
 import 'widgets/log_entry_row.dart';
@@ -309,110 +310,114 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
       if (idx >= 0) title = 'Session #${idx + 1}';
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        title: title,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _groupMode == _GroupMode.session
-                  ? Icons.calendar_today_rounded
-                  : Icons.view_headline_rounded,
-              size: 20,
+    return Theme(
+      data: DebugTheme.theme,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(
+          title: title,
+          actions: [
+            IconButton(
+              icon: Icon(
+                _groupMode == _GroupMode.session
+                    ? Icons.calendar_today_rounded
+                    : Icons.view_headline_rounded,
+                size: 20,
+              ),
+              onPressed: () {
+                setState(() {
+                  _groupMode = _groupMode == _GroupMode.session
+                      ? _GroupMode.date
+                      : _GroupMode.session;
+                });
+              },
             ),
-            onPressed: () {
-              setState(() {
-                _groupMode = _groupMode == _GroupMode.session
-                    ? _GroupMode.date
-                    : _GroupMode.session;
-              });
-            },
-          ),
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.filter_list_rounded, size: 20),
-                onPressed: () => Navigator.push(
-                  context,
-                  CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.filter_list_rounded, size: 20),
+                  onPressed: () => Navigator.push(
+                    context,
+                    CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+                  ),
                 ),
-              ),
-              ListenableBuilder(
-                listenable: FilterState.instance,
-                builder: (_, __) => FilterState.instance.activeFilterCount > 0
-                    ? Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.orangeAccent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomActionBar(),
-      body: Column(
-        children: [
-          LogSearchBar(
-            controller: _searchController,
-            query: _query,
-            onChanged: (v) {
-              setState(() => _query = v);
-            },
-            onClear: () {
-              _searchController.clear();
-              setState(() => _query = '');
-            },
-          ),
-          ListenableBuilder(
-            listenable: FilterState.instance,
-            builder: (_, __) => _hasAnyFiltersActive
-                ? GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      CupertinoPageRoute(builder: (_) => const FiltersScreen()),
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.elevated,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.white10),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              _buildFilterSummary(),
-                              style: const TextStyle(
-                                color: Colors.white38,
-                                fontSize: 12,
-                                fontFamily: 'monospace',
-                              ),
+                ListenableBuilder(
+                  listenable: FilterState.instance,
+                  builder: (_, __) => FilterState.instance.activeFilterCount > 0
+                      ? Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.orangeAccent,
+                              shape: BoxShape.circle,
                             ),
                           ),
-                          const Icon(Icons.chevron_right_rounded,
-                              size: 14, color: Colors.white24),
-                        ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomActionBar(),
+        body: Column(
+          children: [
+            LogSearchBar(
+              controller: _searchController,
+              query: _query,
+              onChanged: (v) {
+                setState(() => _query = v);
+              },
+              onClear: () {
+                _searchController.clear();
+                setState(() => _query = '');
+              },
+            ),
+            ListenableBuilder(
+              listenable: FilterState.instance,
+              builder: (_, __) => _hasAnyFiltersActive
+                  ? GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (_) => const FiltersScreen()),
                       ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          Expanded(child: _buildBody()),
-        ],
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.elevated,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CustomText(
+                                _buildFilterSummary(),
+                                style: const TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 12,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded,
+                                size: 14, color: Colors.white24),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            Expanded(child: _buildBody()),
+          ],
+        ),
       ),
     );
   }

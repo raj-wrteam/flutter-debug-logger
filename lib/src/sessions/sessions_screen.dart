@@ -8,6 +8,7 @@ import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
+import '../shared/debug_theme.dart';
 import '../shared/log_empty_state.dart';
 
 // ── Display item sealed class ─────────────────────────────────────────────────
@@ -244,110 +245,114 @@ class _SessionsScreenState extends State<SessionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        title: 'Sessions',
-        actions: [
-          IconButton(
-            icon: Icon(
-              _groupMode == _GroupMode.flat
-                  ? Icons.calendar_today_rounded
-                  : Icons.view_headline_rounded,
-              size: 20,
-            ),
-            tooltip:
-                _groupMode == _GroupMode.flat ? 'Group by date' : 'Flat list',
-            onPressed: () => setState(() {
-              _groupMode = _groupMode == _GroupMode.flat
-                  ? _GroupMode.date
-                  : _GroupMode.flat;
-            }),
-          ),
-          IconButton(
-            icon: Icon(
-              _selectMode ? Icons.close_rounded : Icons.checklist_rounded,
-              size: 20,
-            ),
-            onPressed: _toggleSelectMode,
-          ),
-        ],
-      ),
-      bottomNavigationBar: _selectMode ? _buildBottomBar() : null,
-      body: ListenableBuilder(
-        listenable: DebugLogger.store,
-        builder: (context, _) {
-          final sessions = DebugLogger.store.sessions.reversed.toList();
-          if (sessions.isEmpty) {
-            return const LogEmptyState(text: 'No sessions yet.');
-          }
-          final items = _buildDisplayItems(sessions);
-          return Column(
-            children: [
-              if (_selectMode)
-                _SelectionToolbar(
-                  selectedCount: _selectedSessionIds.length,
-                  totalCount: sessions.length,
-                  allSelected: _selectedSessionIds.length == sessions.length,
-                  onSelectAll: () => _selectAll(sessions),
-                  onDeselectAll: _deselectAll,
-                ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: items.length,
-                  itemBuilder: (_, i) {
-                    final item = items[i];
-                    return switch (item) {
-                      _DateGroupItem(:final date, :final sessions) =>
-                        _DateGroupHeader(
-                          date: date,
-                          sessionCount: sessions.length,
-                          entryCount: sessions.fold(
-                              0, (sum, s) => sum + s.entries.length),
-                          isCollapsed: _collapsedDates.contains(_dateKey(date)),
-                          onToggle: () => setState(() {
-                            final key = _dateKey(date);
-                            if (_collapsedDates.contains(key)) {
-                              _collapsedDates.remove(key);
-                            } else {
-                              _collapsedDates.add(key);
-                            }
-                          }),
-                          onExtract: () => _extractDateGroup(date, sessions),
-                          onSelect: () => _selectDateGroup(sessions),
-                          onDelete: () => _deleteDateGroup(date, sessions),
-                        ),
-                      _SessionItem(:final session, :final sessionNumber) =>
-                        Padding(
-                          padding: EdgeInsets.only(
-                            bottom: 8,
-                            left: _groupMode == _GroupMode.date ? 8 : 0,
-                          ),
-                          child: _SessionCard(
-                            session: session,
-                            sessionNumber: sessionNumber,
-                            selectMode: _selectMode,
-                            isSelected:
-                                _selectedSessionIds.contains(session.id),
-                            onTap: _selectMode
-                                ? () => _toggleSession(session.id)
-                                : () => Navigator.push(
-                                      context,
-                                      CupertinoPageRoute(
-                                        builder: (_) => AllLogsScreen(
-                                            sessionId: session.id),
-                                      ),
-                                    ),
-                          ),
-                        ),
-                    };
-                  },
-                ),
+    return Theme(
+      data: DebugTheme.theme,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(
+          title: 'Sessions',
+          actions: [
+            IconButton(
+              icon: Icon(
+                _groupMode == _GroupMode.flat
+                    ? Icons.calendar_today_rounded
+                    : Icons.view_headline_rounded,
+                size: 20,
               ),
-            ],
-          );
-        },
+              tooltip:
+                  _groupMode == _GroupMode.flat ? 'Group by date' : 'Flat list',
+              onPressed: () => setState(() {
+                _groupMode = _groupMode == _GroupMode.flat
+                    ? _GroupMode.date
+                    : _GroupMode.flat;
+              }),
+            ),
+            IconButton(
+              icon: Icon(
+                _selectMode ? Icons.close_rounded : Icons.checklist_rounded,
+                size: 20,
+              ),
+              onPressed: _toggleSelectMode,
+            ),
+          ],
+        ),
+        bottomNavigationBar: _selectMode ? _buildBottomBar() : null,
+        body: ListenableBuilder(
+          listenable: DebugLogger.store,
+          builder: (context, _) {
+            final sessions = DebugLogger.store.sessions.reversed.toList();
+            if (sessions.isEmpty) {
+              return const LogEmptyState(text: 'No sessions yet.');
+            }
+            final items = _buildDisplayItems(sessions);
+            return Column(
+              children: [
+                if (_selectMode)
+                  _SelectionToolbar(
+                    selectedCount: _selectedSessionIds.length,
+                    totalCount: sessions.length,
+                    allSelected: _selectedSessionIds.length == sessions.length,
+                    onSelectAll: () => _selectAll(sessions),
+                    onDeselectAll: _deselectAll,
+                  ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: items.length,
+                    itemBuilder: (_, i) {
+                      final item = items[i];
+                      return switch (item) {
+                        _DateGroupItem(:final date, :final sessions) =>
+                          _DateGroupHeader(
+                            date: date,
+                            sessionCount: sessions.length,
+                            entryCount: sessions.fold(
+                                0, (sum, s) => sum + s.entries.length),
+                            isCollapsed:
+                                _collapsedDates.contains(_dateKey(date)),
+                            onToggle: () => setState(() {
+                              final key = _dateKey(date);
+                              if (_collapsedDates.contains(key)) {
+                                _collapsedDates.remove(key);
+                              } else {
+                                _collapsedDates.add(key);
+                              }
+                            }),
+                            onExtract: () => _extractDateGroup(date, sessions),
+                            onSelect: () => _selectDateGroup(sessions),
+                            onDelete: () => _deleteDateGroup(date, sessions),
+                          ),
+                        _SessionItem(:final session, :final sessionNumber) =>
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: 8,
+                              left: _groupMode == _GroupMode.date ? 8 : 0,
+                            ),
+                            child: _SessionCard(
+                              session: session,
+                              sessionNumber: sessionNumber,
+                              selectMode: _selectMode,
+                              isSelected:
+                                  _selectedSessionIds.contains(session.id),
+                              onTap: _selectMode
+                                  ? () => _toggleSession(session.id)
+                                  : () => Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (_) => AllLogsScreen(
+                                              sessionId: session.id),
+                                        ),
+                                      ),
+                            ),
+                          ),
+                      };
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

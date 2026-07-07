@@ -10,6 +10,7 @@ import '../shared/custom_text.dart';
 import '../shared/custom_divider.dart';
 import '../shared/custom_section_header.dart';
 import '../shared/custom_text_button.dart';
+import '../shared/debug_theme.dart';
 import '../shared/log_share_confirm_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -79,7 +80,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => const LogShareConfirmSheet(),
+      builder: (_) => Theme(
+        data: DebugTheme.theme,
+        child: const LogShareConfirmSheet(),
+      ),
     );
     if (ok != true || !mounted) return;
     await _exportLogs();
@@ -90,28 +94,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _clear() async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.elevated,
-        title: const CustomText(
-          'Clear all logs?',
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        content: const CustomText(
-          'This will permanently delete all log entries.',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          CustomTextButton(
-            onPressed: () => Navigator.pop(context, false),
-            label: 'Cancel',
-            textColor: Colors.white38,
+      builder: (_) => Theme(
+        data: DebugTheme.theme,
+        child: AlertDialog(
+          backgroundColor: AppColors.elevated,
+          title: const CustomText(
+            'Clear all logs?',
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
-          CustomTextButton(
-            onPressed: () => Navigator.pop(context, true),
-            label: 'Clear',
-            textColor: const Color(0xFFEF5350),
+          content: const CustomText(
+            'This will permanently delete all log entries.',
+            style: TextStyle(color: Colors.white70),
           ),
-        ],
+          actions: [
+            CustomTextButton(
+              onPressed: () => Navigator.pop(context, false),
+              label: 'Cancel',
+              textColor: Colors.white38,
+            ),
+            CustomTextButton(
+              onPressed: () => Navigator.pop(context, true),
+              label: 'Clear',
+              textColor: const Color(0xFFEF5350),
+            ),
+          ],
+        ),
       ),
     );
     if (ok != true || !mounted) return;
@@ -121,57 +128,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        title: 'Settings & Actions',
-      ),
-      body: ListenableBuilder(
-        listenable: FilterState.instance,
-        builder: (context, _) => ListView(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          children: [
-            const _SectionHeader('DISPLAY'),
-            SwitchListTile(
-              tileColor: AppColors.background,
-              title: const CustomText('Latest first',
-                  style: TextStyle(color: Colors.white, fontSize: 14)),
-              value: FilterState.instance.latestFirst,
-              onChanged: (_) => FilterState.instance.toggleLatestFirst(),
-              activeThumbColor: Colors.orangeAccent,
-              inactiveTrackColor: Colors.white12,
-            ),
-            const CustomDivider(indent: 16, endIndent: 16),
-            const _SectionHeader('EXPORT'),
-            _ActionTile(
-              icon: Icons.ios_share_outlined,
-              label: 'Export logs',
-              onTap: _exportLogs,
-            ),
-            _ActionTile(
-              icon: Icons.copy_all_outlined,
-              label: 'Copy all logs',
-              onTap: _copyAll,
-            ),
-            _ActionTile(
-              icon: Icons.content_copy_rounded,
-              label: 'Copy filtered logs',
-              onTap: _copyFiltered,
-            ),
-            _ActionTile(
-              icon: Icons.delete_sweep_outlined,
-              label: 'Share & clear',
-              onTap: _shareAndClear,
-            ),
-            const CustomDivider(indent: 16, endIndent: 16),
-            const _SectionHeader('DANGER ZONE'),
-            _ActionTile(
-              icon: Icons.delete_outline_rounded,
-              label: 'Clear all logs',
-              onTap: _clear,
-              color: const Color(0xFFEF5350),
-            ),
-          ],
+    return Theme(
+      data: DebugTheme.theme,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: const CustomAppBar(
+          title: 'Settings & Actions',
+        ),
+        body: ListenableBuilder(
+          listenable: FilterState.instance,
+          builder: (context, _) => ListView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            children: [
+              const _SectionHeader('DISPLAY'),
+              SwitchListTile(
+                tileColor: AppColors.background,
+                title: const CustomText('Latest first',
+                    style: TextStyle(color: Colors.white, fontSize: 14)),
+                value: FilterState.instance.latestFirst,
+                onChanged: (_) => FilterState.instance.toggleLatestFirst(),
+                activeThumbColor: Colors.orangeAccent,
+                inactiveTrackColor: Colors.white12,
+              ),
+              const CustomDivider(indent: 16, endIndent: 16),
+              const _SectionHeader('EXPORT'),
+              _ActionTile(
+                icon: Icons.ios_share_outlined,
+                label: 'Export logs',
+                onTap: _exportLogs,
+              ),
+              _ActionTile(
+                icon: Icons.copy_all_outlined,
+                label: 'Copy all logs',
+                onTap: _copyAll,
+              ),
+              _ActionTile(
+                icon: Icons.content_copy_rounded,
+                label: 'Copy filtered logs',
+                onTap: _copyFiltered,
+              ),
+              _ActionTile(
+                icon: Icons.delete_sweep_outlined,
+                label: 'Share & clear',
+                onTap: _shareAndClear,
+              ),
+              const CustomDivider(indent: 16, endIndent: 16),
+              const _SectionHeader('DANGER ZONE'),
+              _ActionTile(
+                icon: Icons.delete_outline_rounded,
+                label: 'Clear all logs',
+                onTap: _clear,
+                color: const Color(0xFFEF5350),
+              ),
+            ],
+          ),
         ),
       ),
     );

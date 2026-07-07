@@ -4,6 +4,7 @@ import '../../log_level.dart';
 import '../../models/log_entry.dart';
 import '../../shared/custom_text.dart';
 import '../../shared/custom_chip.dart';
+import '../../shared/debug_theme.dart';
 import 'log_entry_detail_sheet.dart';
 
 class LogEntryRow extends StatelessWidget {
@@ -104,9 +105,12 @@ class LogEntryRow extends StatelessWidget {
                 context: context,
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
-                builder: (_) => LogEntryDetailSheet(
-                  entry: entry,
-                  sessionNumber: sessionNumber,
+                builder: (_) => Theme(
+                  data: DebugTheme.theme,
+                  child: LogEntryDetailSheet(
+                    entry: entry,
+                    sessionNumber: sessionNumber,
+                  ),
                 ),
               ),
       child: Container(
@@ -119,8 +123,11 @@ class LogEntryRow extends StatelessWidget {
           children: [
             if (onSelectedChanged != null) ...[
               Icon(
-                isSelected == true ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                color: isSelected == true ? Colors.orangeAccent : Colors.white24,
+                isSelected == true
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+                color:
+                    isSelected == true ? Colors.orangeAccent : Colors.white24,
                 size: 18,
               ),
               const SizedBox(width: 8),
