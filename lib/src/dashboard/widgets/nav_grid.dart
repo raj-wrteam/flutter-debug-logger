@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../filters/filter_state.dart';
 import '../../filters/filters_screen.dart';
+import '../../log_level.dart';
 import '../../logs/all_logs_screen.dart';
 import '../../sessions/sessions_screen.dart';
 import '../../settings/settings_screen.dart';
@@ -36,6 +37,19 @@ class NavGrid extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             CupertinoPageRoute(builder: (_) => const SessionsScreen()),
+          ),
+        ),
+        _NavTile(
+          icon: Icons.sync_alt_rounded,
+          label: 'Socket Logs',
+          onTap: () => Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (_) => AllLogsScreen(
+                tagFilter: LogTag.socketTags.toSet(),
+                title: 'Socket Logs',
+              ),
+            ),
           ),
         ),
         ListenableBuilder(

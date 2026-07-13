@@ -109,6 +109,24 @@ enum LogTag {
   /// Uncaught Dart runtime exception — `[App Error]`.
   appError,
 
+  /// Socket connection opened — `[Socket Connect]`.
+  socketConnect,
+
+  /// Socket connection closed — `[Socket Disconnect]`.
+  socketDisconnect,
+
+  /// Outgoing socket message — `[Socket Send]`.
+  socketSend,
+
+  /// Incoming socket message — `[Socket Receive]`.
+  socketReceive,
+
+  /// Custom/named socket event (typing indicators, presence, etc.) — `[Socket Event]`.
+  socketEvent,
+
+  /// Socket-level error — `[Socket Error]`.
+  socketError,
+
   /// Output from `print()` / `debugPrint()` — `[Print]`.
   printLog,
 
@@ -132,6 +150,12 @@ enum LogTag {
         LogTag.apiError => const Color(0xFFEF5350), // red
         LogTag.flutterError => const Color(0xFFEF5350), // red
         LogTag.appError => const Color(0xFFEF5350), // red
+        LogTag.socketConnect => const Color(0xFF26A69A), // teal
+        LogTag.socketDisconnect => const Color(0xFF78909C), // blue-grey
+        LogTag.socketSend => const Color(0xFF00BCD4), // cyan
+        LogTag.socketReceive => const Color(0xFF009688), // dark teal
+        LogTag.socketEvent => const Color(0xFF7E57C2), // deep purple
+        LogTag.socketError => const Color(0xFFFF5252), // red
         LogTag.printLog => const Color(0xFFB0BEC5), // cool-grey
         LogTag.stackTrace => const Color(0xFFB0BEC5), // cool-grey
         LogTag.unknown => const Color(0xFFCFD8DC), // light grey-blue
@@ -151,6 +175,12 @@ enum LogTag {
         LogTag.apiError => 'API/Network Errors',
         LogTag.flutterError => 'Flutter Errors',
         LogTag.appError => 'App Errors',
+        LogTag.socketConnect => 'Socket Connect',
+        LogTag.socketDisconnect => 'Socket Disconnect',
+        LogTag.socketSend => 'Socket Send',
+        LogTag.socketReceive => 'Socket Receive',
+        LogTag.socketEvent => 'Socket Event',
+        LogTag.socketError => 'Socket Error',
         LogTag.printLog => 'Console Prints',
         LogTag.stackTrace => 'Stack Traces',
         LogTag.unknown => 'Other Logs',
@@ -163,6 +193,12 @@ enum LogTag {
   /// Prefer this over [fromLine] when working with structured [LogEntry] data.
   /// Checked in priority order so `[Response Error]` is matched before `[Response]`.
   static LogTag fromMessage(String message) {
+    if (message.contains('[Socket Connect]')) return LogTag.socketConnect;
+    if (message.contains('[Socket Disconnect]')) return LogTag.socketDisconnect;
+    if (message.contains('[Socket Send]')) return LogTag.socketSend;
+    if (message.contains('[Socket Receive]')) return LogTag.socketReceive;
+    if (message.contains('[Socket Event]')) return LogTag.socketEvent;
+    if (message.contains('[Socket Error]')) return LogTag.socketError;
     if (message.contains('[Response Error]')) return LogTag.responseError;
     if (message.contains('[Request Body]') ||
         message.contains('[Response Body]') ||
@@ -180,6 +216,17 @@ enum LogTag {
         message.startsWith('\t')) return LogTag.stackTrace;
     return LogTag.unknown;
   }
+
+  /// All socket-related tags, in display order. Used by the Filters screen
+  /// SOCKET LOGS section and the dashboard "Socket Logs" nav tile.
+  static const List<LogTag> socketTags = [
+    LogTag.socketConnect,
+    LogTag.socketDisconnect,
+    LogTag.socketSend,
+    LogTag.socketReceive,
+    LogTag.socketEvent,
+    LogTag.socketError,
+  ];
 
   @Deprecated('Use LogTag.fromMessage() instead. fromLine() expects the old '
       'text-format line with timestamp/level prefix which no longer exists.')

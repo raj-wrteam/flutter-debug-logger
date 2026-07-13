@@ -127,6 +127,120 @@ class DebugLogger {
     );
   }
 
+  // ── Socket logging ───────────────────────────────────────────────────────
+
+  static const int _maxSocketDataChars = 2000;
+
+  /// Formats [data] for a socket log line: JSON-encodes Map/List, otherwise
+  /// `toString()`s it, then truncates to [_maxSocketDataChars].
+  static String _formatSocketData(dynamic data) {
+    if (data == null) return '<empty>';
+    final text = (data is Map || data is List) ? jsonEncode(data) : '$data';
+    if (text.length <= _maxSocketDataChars) return text;
+    final omitted = text.length - _maxSocketDataChars;
+    return '${text.substring(0, _maxSocketDataChars)}... (+$omitted chars)';
+  }
+
+  /// Logs a socket connection being opened.
+  ///
+  /// ```dart
+  /// DebugLogger.logSocketConnect('wss://example.com/ws');
+  /// ```
+  static void logSocketConnect(
+    String url, {
+    Map<String, dynamic> metadata = const {},
+  }) {
+    writeStructured(
+      message: '[Socket Connect] $url',
+      level: LogLevel.info,
+      tag: LogTag.socketConnect,
+      metadata: {'url': url, ...metadata},
+    );
+  }
+
+  /// Logs a socket connection being closed.
+  static void logSocketDisconnect(
+    String url, {
+    String? reason,
+    Map<String, dynamic> metadata = const {},
+  }) {
+    writeStructured(
+      message:
+          '[Socket Disconnect] $url${reason != null ? ' — $reason' : ''}',
+      level: LogLevel.medium,
+      tag: LogTag.socketDisconnect,
+      metadata: {'url': url, if (reason != null) 'reason': reason, ...metadata},
+    );
+  }
+
+  /// Logs an outgoing socket message.
+  ///
+  /// [event] is the message/event name (e.g. `'chat.message'`); [data] is
+  /// the payload (any type — Map/List are JSON-encoded).
+  static void logSocketSend(String event, {dynamic data, String? url}) {
+    writeStructured(
+      message: '[Socket Send] $event${url != null ? ' → $url' : ''} '
+          '${_formatSocketData(data)}',
+      level: LogLevel.info,
+      tag: LogTag.socketSend,
+      metadata: {
+        'event': event,
+        if (url != null) 'url': url,
+        if (data != null) 'data': data,
+      },
+    );
+  }
+
+  /// Logs an incoming socket message.
+  static void logSocketReceive(String event, {dynamic data, String? url}) {
+    writeStructured(
+      message: '[Socket Receive] $event${url != null ? ' ← $url' : ''} '
+          '${_formatSocketData(data)}',
+      level: LogLevel.info,
+      tag: LogTag.socketReceive,
+      metadata: {
+        'event': event,
+        if (url != null) 'url': url,
+        if (data != null) 'data': data,
+      },
+    );
+  }
+
+  /// Logs a custom/named socket event that isn't a plain send or receive —
+  /// e.g. typing indicators or online/offline presence updates.
+  ///
+  /// ```dart
+  /// DebugLogger.logSocketEvent('typing', data: {'userId': '42'});
+  /// DebugLogger.logSocketEvent('presence', data: {'status': 'online'});
+  /// ```
+  static void logSocketEvent(String eventName, {dynamic data, String? url}) {
+    writeStructured(
+      message: '[Socket Event] $eventName ${_formatSocketData(data)}',
+      level: LogLevel.info,
+      tag: LogTag.socketEvent,
+      metadata: {
+        'event': eventName,
+        if (url != null) 'url': url,
+        if (data != null) 'data': data,
+      },
+    );
+  }
+
+  /// Logs a socket-level error.
+  static void logSocketError(
+    Object error, {
+    StackTrace? stackTrace,
+    String? url,
+  }) {
+    writeStructured(
+      message: '[Socket Error] ${url != null ? '$url — ' : ''}$error',
+      level: LogLevel.error,
+      tag: LogTag.socketError,
+      metadata: {if (url != null) 'url': url},
+      stackTrace: stackTrace?.toString(),
+    );
+  }
+
   /// Package-internal structured write — used by [FlutterDebugLogInterceptor]
   /// to supply structured [metadata]. External callers use [write]/[writeError].
   static void writeStructured({

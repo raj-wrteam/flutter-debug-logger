@@ -89,6 +89,24 @@ class FiltersScreen extends StatelessWidget {
                           ))
                       .toList(),
                 ),
+                const SizedBox(height: 24),
+                const CustomDivider(),
+                const SizedBox(height: 20),
+                const _SectionLabel('SOCKET LOGS'),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: LogTag.socketTags
+                      .map((tag) => _FilterChip(
+                            label: tag.label,
+                            selected:
+                                FilterState.instance.activeTags.contains(tag),
+                            color: tag.color,
+                            onTap: () => FilterState.instance.toggleTag(tag),
+                          ))
+                      .toList(),
+                ),
                 const SizedBox(height: 32),
               ],
             ),

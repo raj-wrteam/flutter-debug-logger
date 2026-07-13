@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../debug_logger.dart';
 import '../filters/filter_state.dart';
 import '../filters/filters_screen.dart';
+import '../log_level.dart';
 import '../models/log_entry.dart';
 import '../models/log_session.dart';
 import '../shared/app_colors.dart';
@@ -44,10 +45,24 @@ enum _GroupMode { session, date }
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 class AllLogsScreen extends StatefulWidget {
-  const AllLogsScreen({super.key, this.sessionId});
+  const AllLogsScreen({
+    super.key,
+    this.sessionId,
+    this.tagFilter,
+    this.title,
+  });
 
   /// When set, only logs from this session are shown.
   final String? sessionId;
+
+  /// When set, only entries whose tag is in this set are shown, and the
+  /// global [FilterState.activeTags] selection is ignored (locked view).
+  /// Level filtering still applies. Used by the "Socket Logs" nav tile.
+  final Set<LogTag>? tagFilter;
+
+  /// Overrides the default 'All Logs' app-bar title. Ignored when
+  /// [sessionId] is set (session title takes precedence).
+  final String? title;
 
   @override
   State<AllLogsScreen> createState() => _AllLogsScreenState();
@@ -81,7 +96,10 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
 
   bool _entryPassesFilter(LogEntry e) {
     final fs = FilterState.instance;
-    return fs.activeLevels.contains(e.level) && fs.activeTags.contains(e.tag);
+    final tagOk = widget.tagFilter != null
+        ? widget.tagFilter!.contains(e.tag)
+        : fs.activeTags.contains(e.tag);
+    return fs.activeLevels.contains(e.level) && tagOk;
   }
 
   bool _entryMatchesSearch(LogEntry e) {
@@ -303,7 +321,7 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String title = 'All Logs';
+    String title = widget.title ?? 'All Logs';
     if (widget.sessionId != null) {
       final idx = DebugLogger.store.sessions
           .indexWhere((s) => s.id == widget.sessionId);
@@ -332,35 +350,36 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                 });
               },
             ),
-            Stack(
-              alignment: Alignment.topRight,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.filter_list_rounded, size: 20),
-                  onPressed: () => Navigator.push(
-                    context,
-                    CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+            if (widget.tagFilter == null)
+              Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_list_rounded, size: 20),
+                    onPressed: () => Navigator.push(
+                      context,
+                      CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+                    ),
                   ),
-                ),
-                ListenableBuilder(
-                  listenable: FilterState.instance,
-                  builder: (_, __) => FilterState.instance.activeFilterCount > 0
-                      ? Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.orangeAccent,
-                              shape: BoxShape.circle,
+                  ListenableBuilder(
+                    listenable: FilterState.instance,
+                    builder: (_, __) => FilterState.instance.activeFilterCount > 0
+                        ? Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.orangeAccent,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
           ],
         ),
         bottomNavigationBar: _buildBottomActionBar(),
@@ -379,7 +398,7 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
             ),
             ListenableBuilder(
               listenable: FilterState.instance,
-              builder: (_, __) => _hasAnyFiltersActive
+              builder: (_, __) => (widget.tagFilter == null && _hasAnyFiltersActive)
                   ? GestureDetector(
                       onTap: () => Navigator.push(
                         context,
