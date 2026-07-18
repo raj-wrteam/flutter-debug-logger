@@ -53,16 +53,32 @@ class LogEntry {
         if (metadata.isNotEmpty) 'meta': metadata,
       };
 
+  /// Metadata keys used internally to recover full/raw text (e.g. for copy
+  /// actions) that duplicate what's already shown via [fullMessage] or a
+  /// dedicated copy button — kept out of any general metadata listing.
+  static const Set<String> _internalMetadataKeys = {'curl', 'fullMessage'};
+
+  /// [metadata] with internal-only keys removed — use this wherever metadata
+  /// is displayed or exported generically.
+  Map<String, dynamic> get visibleMetadata => Map<String, dynamic>.fromEntries(
+      metadata.entries.where((e) => !_internalMetadataKeys.contains(e.key)));
+
+  /// The untruncated message, when [message] was shortened for display
+  /// (e.g. a request/response body cut down to `maxBodyChars`). Falls back
+  /// to [message] when nothing was truncated.
+  String get fullMessage => (metadata['fullMessage'] as String?) ?? message;
+
   String formatAsText({required int sessionNumber}) {
     final buf = StringBuffer();
     buf.writeln('Time:    ${_formatTimestamp(timestamp)}');
     buf.writeln('Level:   ${level.label.toUpperCase()}');
     buf.writeln('Tag:     ${tag.label}');
     buf.writeln('Session: #$sessionNumber');
-    buf.writeln('Message: $message');
-    if (metadata.isNotEmpty) {
-      final metaStr =
-          metadata.entries.map((e) => '${e.key}=${e.value}').join('  ');
+    buf.writeln('Message: $fullMessage');
+    if (visibleMetadata.isNotEmpty) {
+      final metaStr = visibleMetadata.entries
+          .map((e) => '${e.key}=${e.value}')
+          .join('  ');
       buf.writeln('Meta:    $metaStr');
     }
     if (stackTrace != null) {

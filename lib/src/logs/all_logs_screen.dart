@@ -78,9 +78,36 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   bool _selectMode = false;
   final Set<String> _selectedEntryIds = {};
 
+  // Whether the view should stay pinned to the newest entry. Starts true so
+  // the screen opens already scrolled to the latest log; cleared once the
+  // user scrolls away from the bottom so we don't yank them back while
+  // they're reading older entries.
+  bool _pinnedToBottom = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    _pinnedToBottom = position.pixels >= position.maxScrollExtent - 24;
+  }
+
+  void _scrollToBottomIfPinned() {
+    if (FilterState.instance.latestFirst || !_pinnedToBottom) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -455,6 +482,7 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
           return const LogEmptyState(text: 'No matching logs.');
         }
         final items = _buildDisplayItems();
+        _scrollToBottomIfPinned();
         return Scrollbar(
           controller: _scrollController,
           thumbVisibility: true,

@@ -80,7 +80,39 @@ class LogEntryDetailSheet extends StatelessWidget {
                 children: [
                   _MetaRow('Session', '#$sessionNumber'),
                   const SizedBox(height: 16),
-                  const _SheetSectionLabel('MESSAGE'),
+                  Row(
+                    children: [
+                      const _SheetSectionLabel('MESSAGE'),
+                      if (entry.tag == LogTag.curl &&
+                          entry.metadata['curl'] is String) ...[
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () async {
+                            await Clipboard.setData(ClipboardData(
+                              text: entry.metadata['curl'] as String,
+                            ));
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: CustomText('cURL command copied'),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                          child: const CustomText(
+                            'Copy cURL',
+                            style: TextStyle(
+                              color: Colors.orangeAccent,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -89,13 +121,13 @@ class LogEntryDetailSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.white10),
                     ),
-                    child: SelectableText(entry.message, style: _mono),
+                    child: SelectableText(entry.fullMessage, style: _mono),
                   ),
-                  if (entry.metadata.isNotEmpty) ...[
+                  if (entry.visibleMetadata.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     const _SheetSectionLabel('METADATA'),
                     const SizedBox(height: 8),
-                    ...entry.metadata.entries.map(
+                    ...entry.visibleMetadata.entries.map(
                       (e) => _MetaRow(e.key, '${e.value}'),
                     ),
                   ],
@@ -111,6 +143,7 @@ class LogEntryDetailSheet extends StatelessWidget {
                               ClipboardData(text: entry.stackTrace!),
                             );
                             if (context.mounted) {
+                              Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: CustomText('Stack trace copied'),

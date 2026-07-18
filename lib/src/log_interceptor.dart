@@ -103,30 +103,49 @@ class FlutterDebugLogInterceptor extends Interceptor {
     return redactedHeaders.any((h) => h.toLowerCase() == lowerKey);
   }
 
-  String _formatBody(dynamic data) {
+  String _bodyToString(dynamic data) {
     if (data == null) return '<empty>';
-    String text;
     if (data is FormData) {
       final fields = data.fields.map((f) => '${f.key}=${f.value}');
       final files = data.files.map((f) {
         final filename = f.value.filename ?? 'file';
         return '${f.key}=@$filename';
       });
-      text = [...fields, ...files].join(', ');
+      return [...fields, ...files].join(', ');
     } else if (data is List<int>) {
-      text = '<${data.length} bytes>';
+      return '<${data.length} bytes>';
     } else if (data is Map || data is List) {
-      text = jsonEncode(data);
+      return jsonEncode(data);
     } else {
-      text = '$data';
+      return '$data';
     }
-    return _truncate(text);
   }
 
   String _truncate(String text) {
     if (maxBodyChars <= 0 || text.length <= maxBodyChars) return text;
     final omitted = text.length - maxBodyChars;
     return '${text.substring(0, maxBodyChars)}... (+$omitted chars)';
+  }
+
+  /// Logs a body entry, keeping the full untruncated text in metadata
+  /// (as `fullMessage`) so copy/export/detail views can recover it even
+  /// though [message] shows the `maxBodyChars`-truncated version.
+  void _writeBody({
+    required String label,
+    required dynamic data,
+    required LogLevel level,
+  }) {
+    final raw = _bodyToString(data);
+    final truncated = _truncate(raw);
+    final displayMessage = '$label$_prefix $truncated';
+    DebugLogger.writeStructured(
+      message: displayMessage,
+      level: level,
+      tag: LogTag.body,
+      metadata: {
+        if (raw != truncated) 'fullMessage': '$label$_prefix $raw',
+      },
+    );
   }
 
   int _elapsedMs(RequestOptions options) {
@@ -159,18 +178,20 @@ class FlutterDebugLogInterceptor extends Interceptor {
       );
 
       if (logRequestBody && options.data != null) {
-        DebugLogger.writeStructured(
-          message: '[Request Body]$_prefix ${_formatBody(options.data)}',
+        _writeBody(
+          label: '[Request Body]',
+          data: options.data,
           level: LogLevel.info,
-          tag: LogTag.body,
         );
       }
 
       if (generateCurl) {
+        final curl = _buildCurl(options);
         DebugLogger.writeStructured(
-          message: '[cURL]$_prefix ${_buildCurl(options)}',
+          message: '[cURL]$_prefix $curl',
           level: LogLevel.info,
           tag: LogTag.curl,
+          metadata: {'curl': curl},
         );
       }
     }
@@ -199,10 +220,10 @@ class FlutterDebugLogInterceptor extends Interceptor {
       );
 
       if (logResponseBody && response.data != null) {
-        DebugLogger.writeStructured(
-          message: '[Response Body]$_prefix ${_formatBody(response.data)}',
+        _writeBody(
+          label: '[Response Body]',
+          data: response.data,
           level: LogLevel.info,
-          tag: LogTag.body,
         );
       }
 
@@ -246,10 +267,10 @@ class FlutterDebugLogInterceptor extends Interceptor {
       );
 
       if (logResponseBody && err.response?.data != null) {
-        DebugLogger.writeStructured(
-          message: '[Error Body]$_prefix ${_formatBody(err.response?.data)}',
+        _writeBody(
+          label: '[Error Body]',
+          data: err.response?.data,
           level: LogLevel.error,
-          tag: LogTag.body,
         );
       }
     }
