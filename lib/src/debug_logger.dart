@@ -165,8 +165,7 @@ class DebugLogger {
     Map<String, dynamic> metadata = const {},
   }) {
     writeStructured(
-      message:
-          '[Socket Disconnect] $url${reason != null ? ' — $reason' : ''}',
+      message: '[Socket Disconnect] $url${reason != null ? ' — $reason' : ''}',
       level: LogLevel.medium,
       tag: LogTag.socketDisconnect,
       metadata: {'url': url, if (reason != null) 'reason': reason, ...metadata},
@@ -480,13 +479,15 @@ class DebugLogger {
   }
 
   /// Formats a list of log entries as a human-readable text block.
-  static String serializeEntriesToText(List<LogEntry> entries, {String title = 'Exported Logs'}) {
+  static String serializeEntriesToText(List<LogEntry> entries,
+      {String title = 'Exported Logs'}) {
     final buf = StringBuffer();
     buf.writeln(title);
     buf.writeln('=' * 72);
     buf.writeln();
     for (final entry in entries) {
-      final sessionIndex = store.sessions.indexWhere((s) => s.id == entry.sessionId);
+      final sessionIndex =
+          store.sessions.indexWhere((s) => s.id == entry.sessionId);
       final sessionNum = sessionIndex >= 0 ? sessionIndex + 1 : 0;
       buf.writeln(entry.formatAsText(sessionNumber: sessionNum));
       buf.writeln();
@@ -495,7 +496,8 @@ class DebugLogger {
   }
 
   /// Shares arbitrary text content as a temporary file.
-  static Future<void> shareText(String content, {required String fileName, String? subject}) async {
+  static Future<void> shareText(String content,
+      {required String fileName, String? subject}) async {
     if (!flutterDebugLoggerEnabled || !_initialized) return;
     final dir = _logDirectory ?? await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/$fileName');
@@ -525,15 +527,20 @@ class DebugLogger {
 
   // ── Housekeeping ──────────────────────────────────────────────────────────
 
-  /// Wipes the in-memory store and the on-disk log file.
+  /// Wipes the in-memory store and the on-disk log file, then opens a fresh
+  /// session so subsequent log calls have a session to attach to.
   static void clearFile() {
     store.clear();
+    _currentSessionId = _generateId();
+    final sessionStart = DateTime.now();
+    store.startSession(_currentSessionId!, sessionStart);
     if (_logFile == null) return;
     _pendingWrite = _pendingWrite.then((_) async {
       final file = _logFile;
       if (file == null) return;
       if (await file.exists()) await file.writeAsString('');
     }).catchError((_) {});
+    _queueSessionStartFlush(_currentSessionId!, sessionStart);
   }
 
   /// Waits for all queued writes and clears the log.
