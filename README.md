@@ -8,6 +8,7 @@ A zero-config, file-based floating debug logger for Flutter apps. It automatical
 - 🎨 **Color-Coded Log Viewer**: Displays logs in readable monospace text color-coded by log level and tag.
 - 🔎 **Search & Filter**: Case-insensitive substring search with visual text highlighting, along with filters for specific log levels and tags.
 - 🌐 **Dio Interceptor**: Seamless HTTP logging including request headers/params, response payloads, error details, and dynamic cURL command generation.
+- 🔌 **Socket Logging**: Manual logging helpers for socket connect/disconnect/send/receive/error events. Off by default, toggle via Settings or code.
 - 🧹 **Automatic Log Rotation**: Configuration of max live log file size and automatic rotated backup files to prevent storage bloat.
 - 📤 **Export & Share**: Share logs via native share sheet, clear disk logs, or use a "Share & Clear" flow.
 - 🔇 **Zero Production Cost**: Automatically disabled in release builds unless explicitly activated via build-time flags.
@@ -99,11 +100,46 @@ await DebugLogger.init(
   captureFlutter: true,     // Captures Flutter framework/layout errors (Default: true)
   captureUncaught: true,    // Captures uncaught Dart/async exceptions (Default: true)
   startEnabled: true,       // Start logger as active (Default: true)
+  socketLoggingEnabled: false, // Records socket events (Default: false — off)
   maxLogBytes: 1024 * 1024, // 1MB log file limit before rotating (Default: 1MB)
   maxBackupFiles: 2,        // Number of backup files to keep (Default: 2, Clamped 0-99)
   fileName: 'custom_logs.txt', // Log file name (Default: 'flutter_debug_logs.txt')
 );
 ```
+
+### Socket Logging
+
+Socket events aren't captured automatically — call these helpers manually from your socket connect/message/error handlers. **Off by default**; no socket log is recorded until enabled.
+
+Enable it via `DebugLogger.init(socketLoggingEnabled: true)`, at runtime with `DebugLogger.setSocketLoggingEnabled(true)`, or by flipping "Record socket logs" in the Settings screen.
+
+```dart
+// Check current state
+if (DebugLogger.socketLoggingEnabled) { ... }
+
+// Enable/disable at runtime
+DebugLogger.setSocketLoggingEnabled(true);
+
+// Connection lifecycle
+DebugLogger.logSocketConnect('wss://example.com/ws');
+DebugLogger.logSocketDisconnect('wss://example.com/ws', reason: 'timeout');
+
+// Messages (Map/List data is JSON-encoded; other types use toString(), truncated to 2000 chars)
+DebugLogger.logSocketSend('chat.message', data: {'text': 'hi'}, url: 'wss://example.com/ws');
+DebugLogger.logSocketReceive('chat.message', data: {'text': 'hello'}, url: 'wss://example.com/ws');
+
+// Custom/named events (typing indicators, presence, etc.)
+DebugLogger.logSocketEvent('presence', data: {'status': 'online'});
+
+// Errors
+try {
+  // socket operation
+} catch (e, st) {
+  DebugLogger.logSocketError(e, stackTrace: st, url: 'wss://example.com/ws');
+}
+```
+
+Socket logs are filterable in the log viewer via the **Socket Logs** dashboard tile and the **SOCKET LOGS** filter section.
 
 ### Dio Network Interceptor
 Log HTTP traffic with `FlutterDebugLogInterceptor`. Redacts sensitive headers and formats payloads automatically:
@@ -169,6 +205,14 @@ The three-dot action menu in the top-right contains:
 | `DebugLogger.toggleLogging()` | Toggles log active state and returns the new state. |
 | `DebugLogger.loggingActive` | `bool` getter indicating if logger is accepting writes. |
 | `DebugLogger.fileSizeBytes` | `int` getter returning the current on-disk log file size. |
+| `DebugLogger.logSocketConnect(url, {metadata})` | Logs a socket connection being opened. |
+| `DebugLogger.logSocketDisconnect(url, {reason, metadata})` | Logs a socket connection being closed. |
+| `DebugLogger.logSocketSend(event, {data, url})` | Logs an outgoing socket message. |
+| `DebugLogger.logSocketReceive(event, {data, url})` | Logs an incoming socket message. |
+| `DebugLogger.logSocketEvent(eventName, {data, url})` | Logs a custom/named socket event (e.g. presence, typing). |
+| `DebugLogger.logSocketError(error, {stackTrace, url})` | Logs a socket-level error. |
+| `DebugLogger.socketLoggingEnabled` | `bool` getter indicating if socket events are being recorded (Default: `false`). |
+| `DebugLogger.setSocketLoggingEnabled(enabled)` | Enables/disables recording of socket log events. |
 | `FlutterDebugLogger.wrap({child})` | Widget wrapper displaying the floating button overlay. |
 | `FlutterDebugLogger.overlay` | Signature helper to use as MaterialApp's `builder` property. |
 | `FlutterDebugLogInterceptor` | Dio interceptor for zero-config HTTP logging. |

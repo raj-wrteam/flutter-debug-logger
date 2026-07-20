@@ -41,6 +41,7 @@ class DebugLogger {
   static Directory? _logDirectory;
   static bool _initialized = false;
   static bool _loggingActive = true;
+  static bool _socketLoggingEnabled = false;
   static int _maxLogBytes = 1024 * 1024;
   static int _maxBackupFiles = 2;
   static Future<void> _pendingWrite = Future<void>.value();
@@ -68,6 +69,7 @@ class DebugLogger {
     bool captureFlutter = true,
     bool captureUncaught = true,
     bool startEnabled = true,
+    bool socketLoggingEnabled = false,
     int maxLogBytes = 1024 * 1024,
     int maxBackupFiles = 2,
     String fileName = 'flutter_debug_logs.jsonl',
@@ -77,6 +79,7 @@ class DebugLogger {
       _maxLogBytes = maxLogBytes;
       _maxBackupFiles = maxBackupFiles.clamp(0, 99).toInt();
       _loggingActive = startEnabled;
+      _socketLoggingEnabled = socketLoggingEnabled;
 
       if (_initialized) return;
 
@@ -150,6 +153,7 @@ class DebugLogger {
     String url, {
     Map<String, dynamic> metadata = const {},
   }) {
+    if (!_socketLoggingEnabled) return;
     writeStructured(
       message: '[Socket Connect] $url',
       level: LogLevel.info,
@@ -164,6 +168,7 @@ class DebugLogger {
     String? reason,
     Map<String, dynamic> metadata = const {},
   }) {
+    if (!_socketLoggingEnabled) return;
     writeStructured(
       message: '[Socket Disconnect] $url${reason != null ? ' — $reason' : ''}',
       level: LogLevel.medium,
@@ -177,6 +182,7 @@ class DebugLogger {
   /// [event] is the message/event name (e.g. `'chat.message'`); [data] is
   /// the payload (any type — Map/List are JSON-encoded).
   static void logSocketSend(String event, {dynamic data, String? url}) {
+    if (!_socketLoggingEnabled) return;
     writeStructured(
       message: '[Socket Send] $event${url != null ? ' → $url' : ''} '
           '${_formatSocketData(data)}',
@@ -192,6 +198,7 @@ class DebugLogger {
 
   /// Logs an incoming socket message.
   static void logSocketReceive(String event, {dynamic data, String? url}) {
+    if (!_socketLoggingEnabled) return;
     writeStructured(
       message: '[Socket Receive] $event${url != null ? ' ← $url' : ''} '
           '${_formatSocketData(data)}',
@@ -213,6 +220,7 @@ class DebugLogger {
   /// DebugLogger.logSocketEvent('presence', data: {'status': 'online'});
   /// ```
   static void logSocketEvent(String eventName, {dynamic data, String? url}) {
+    if (!_socketLoggingEnabled) return;
     writeStructured(
       message: '[Socket Event] $eventName ${_formatSocketData(data)}',
       level: LogLevel.info,
@@ -231,6 +239,7 @@ class DebugLogger {
     StackTrace? stackTrace,
     String? url,
   }) {
+    if (!_socketLoggingEnabled) return;
     writeStructured(
       message: '[Socket Error] ${url != null ? '$url — ' : ''}$error',
       level: LogLevel.error,
@@ -592,6 +601,15 @@ class DebugLogger {
   /// Returns whether new log entries are currently accepted.
   static bool get loggingActive =>
       flutterDebugLoggerEnabled && _initialized && _loggingActive;
+
+  /// Returns whether socket events (connect/disconnect/send/receive/etc.)
+  /// are currently recorded. Off by default.
+  static bool get socketLoggingEnabled => _socketLoggingEnabled;
+
+  /// Enables or disables recording of socket log events.
+  static void setSocketLoggingEnabled(bool enabled) {
+    _socketLoggingEnabled = enabled;
+  }
 
   // ── Deprecated ────────────────────────────────────────────────────────────
 

@@ -151,6 +151,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 inactiveTrackColor: Colors.white12,
               ),
               const CustomDivider(indent: 16, endIndent: 16),
+              const _SectionHeader('SOCKET LOGGING'),
+              SwitchListTile(
+                tileColor: AppColors.background,
+                title: const CustomText('Record socket logs',
+                    style: TextStyle(color: Colors.white, fontSize: 14)),
+                value: DebugLogger.socketLoggingEnabled,
+                onChanged: (v) {
+                  DebugLogger.setSocketLoggingEnabled(v);
+                  setState(() {});
+                },
+                activeThumbColor: Colors.orangeAccent,
+                inactiveTrackColor: Colors.white12,
+              ),
+              const CustomDivider(indent: 16, endIndent: 16),
               const _SectionHeader('EXPORT'),
               _ActionTile(
                 icon: Icons.ios_share_outlined,
