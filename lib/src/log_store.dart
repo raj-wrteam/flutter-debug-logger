@@ -55,4 +55,8 @@ class LogStore extends ChangeNotifier {
   LogEntry entryFromJson(Map<String, dynamic> json) => LogEntry.fromJson(json);
 
   Map<String, dynamic> entryToJson(LogEntry entry) => entry.toJson();
+
+  void notifyStoreListeners() {
+    notifyListeners();
+  }
 }

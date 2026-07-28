@@ -127,27 +127,6 @@ class FlutterDebugLogInterceptor extends Interceptor {
     return '${text.substring(0, maxBodyChars)}... (+$omitted chars)';
   }
 
-  /// Logs a body entry, keeping the full untruncated text in metadata
-  /// (as `fullMessage`) so copy/export/detail views can recover it even
-  /// though [message] shows the `maxBodyChars`-truncated version.
-  void _writeBody({
-    required String label,
-    required dynamic data,
-    required LogLevel level,
-  }) {
-    final raw = _bodyToString(data);
-    final truncated = _truncate(raw);
-    final displayMessage = '$label$_prefix $truncated';
-    DebugLogger.writeStructured(
-      message: displayMessage,
-      level: level,
-      tag: LogTag.body,
-      metadata: {
-        if (raw != truncated) 'fullMessage': '$label$_prefix $raw',
-      },
-    );
-  }
-
   int _elapsedMs(RequestOptions options) {
     final startedAt = options.extra[_startedAtKey];
     if (startedAt is! int) return 0;
@@ -161,38 +140,12 @@ class FlutterDebugLogInterceptor extends Interceptor {
     if (flutterDebugLoggerEnabled) {
       options.extra[_startedAtKey] = DateTime.now().microsecondsSinceEpoch;
 
-      final params = options.queryParameters.isEmpty
-          ? ''
-          : ' params:${options.queryParameters}';
-
-      DebugLogger.writeStructured(
-        message: '[Request]$_prefix ${options.method} ${options.uri}$params',
-        level: LogLevel.info,
-        tag: LogTag.request,
-        metadata: {
-          'method': options.method,
-          'url': options.uri.toString(),
-          if (options.queryParameters.isNotEmpty)
-            'params': options.queryParameters,
-        },
-      );
-
-      if (logRequestBody && options.data != null) {
-        _writeBody(
-          label: '[Request Body]',
-          data: options.data,
-          level: LogLevel.info,
-        );
+      if (generateCurl) {
+        options.extra['_curl'] = _buildCurl(options);
       }
 
-      if (generateCurl) {
-        final curl = _buildCurl(options);
-        DebugLogger.writeStructured(
-          message: '[cURL]$_prefix $curl',
-          level: LogLevel.info,
-          tag: LogTag.curl,
-          metadata: {'curl': curl},
-        );
+      if (logRequestBody && options.data != null) {
+        options.extra['_request_body'] = _truncate(_bodyToString(options.data));
       }
     }
     handler.next(options);
@@ -205,27 +158,29 @@ class FlutterDebugLogInterceptor extends Interceptor {
   ) {
     if (flutterDebugLoggerEnabled) {
       final elapsed = _elapsedMs(response.requestOptions);
+      final method = response.requestOptions.method.toUpperCase();
+      final curl = response.requestOptions.extra['_curl'] as String?;
+      final reqBody = response.requestOptions.extra['_request_body'] as String?;
+      final respBody = (logResponseBody && response.data != null)
+          ? _truncate(_bodyToString(response.data))
+          : null;
 
       DebugLogger.writeStructured(
         message:
-            '[Response]$_prefix ${response.statusCode} ${response.requestOptions.uri}'
+            '[Response]$_prefix ${response.statusCode} $method ${response.requestOptions.uri}'
             '${elapsed > 0 ? ' (${elapsed}ms)' : ''}',
         level: LogLevel.info,
         tag: LogTag.response,
         metadata: {
           'statusCode': response.statusCode,
+          'method': method,
           'url': response.requestOptions.uri.toString(),
           if (elapsed > 0) 'durationMs': elapsed,
+          if (curl != null) 'curl': curl,
+          if (reqBody != null) 'requestBody': reqBody,
+          if (respBody != null) 'responseBody': respBody,
         },
       );
-
-      if (logResponseBody && response.data != null) {
-        _writeBody(
-          label: '[Response Body]',
-          data: response.data,
-          level: LogLevel.info,
-        );
-      }
 
       if (response.data case final Map<String, dynamic> data
           when data['error'] == true) {
@@ -237,6 +192,7 @@ class FlutterDebugLogInterceptor extends Interceptor {
           metadata: {
             'url': response.requestOptions.path,
             'errorMessage': data['message'],
+            if (curl != null) 'curl': curl,
           },
         );
       }
@@ -248,31 +204,37 @@ class FlutterDebugLogInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (flutterDebugLoggerEnabled) {
       final elapsed = _elapsedMs(err.requestOptions);
+      final method = err.requestOptions.method.toUpperCase();
+      final curl = err.requestOptions.extra['_curl'] as String?;
+      final reqBody = err.requestOptions.extra['_request_body'] as String?;
+      final respBody = (logResponseBody && err.response?.data != null)
+          ? _truncate(_bodyToString(err.response?.data))
+          : null;
+
       DebugLogger.writeStructured(
         message:
-            '[API Error]$_prefix ${err.response?.statusCode} ${err.requestOptions.uri}'
+            '[API Error]$_prefix ${err.response?.statusCode ?? 0} $method ${err.requestOptions.uri}'
             '${elapsed > 0 ? ' (${elapsed}ms)' : ''}'
-            ' | ${err.response?.statusMessage} | ${err.error}',
+            '${err.response?.statusMessage != null ? ' | ${err.response!.statusMessage}' : ''}'
+            '${err.error != null ? ' | ${err.error}' : ''}',
         level: LogLevel.error,
         tag: LogTag.apiError,
         metadata: {
-          'statusCode': err.response?.statusCode,
+          if (err.response?.statusCode != null)
+            'statusCode': err.response!.statusCode,
+          'method': method,
           'url': err.requestOptions.uri.toString(),
           if (elapsed > 0) 'durationMs': elapsed,
-          'statusMessage': err.response?.statusMessage,
+          if (err.response?.statusMessage != null)
+            'statusMessage': err.response!.statusMessage,
+          if (curl != null) 'curl': curl,
+          if (reqBody != null) 'requestBody': reqBody,
+          if (respBody != null) 'responseBody': respBody,
         },
         stackTrace: err.stackTrace != StackTrace.empty
             ? err.stackTrace.toString()
             : null,
       );
-
-      if (logResponseBody && err.response?.data != null) {
-        _writeBody(
-          label: '[Error Body]',
-          data: err.response?.data,
-          level: LogLevel.error,
-        );
-      }
     }
     handler.reject(err);
   }

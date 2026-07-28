@@ -56,7 +56,12 @@ class LogEntry {
   /// Metadata keys used internally to recover full/raw text (e.g. for copy
   /// actions) that duplicate what's already shown via [fullMessage] or a
   /// dedicated copy button — kept out of any general metadata listing.
-  static const Set<String> _internalMetadataKeys = {'curl', 'fullMessage'};
+  static const Set<String> _internalMetadataKeys = {
+    'curl',
+    'fullMessage',
+    'requestBody',
+    'responseBody',
+  };
 
   /// [metadata] with internal-only keys removed — use this wherever metadata
   /// is displayed or exported generically.

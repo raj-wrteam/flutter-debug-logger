@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../debug_logger.dart';
 import '../../filters/filter_state.dart';
 import '../../filters/filters_screen.dart';
 import '../../log_level.dart';
@@ -15,66 +16,72 @@ class NavGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 2.4,
-      children: [
-        _NavTile(
-          icon: Icons.list_alt_rounded,
-          label: 'All Logs',
-          onTap: () => Navigator.push(
-            context,
-            CupertinoPageRoute(builder: (_) => const AllLogsScreen()),
-          ),
-        ),
-        _NavTile(
-          icon: Icons.history_rounded,
-          label: 'Sessions',
-          onTap: () => Navigator.push(
-            context,
-            CupertinoPageRoute(builder: (_) => const SessionsScreen()),
-          ),
-        ),
-        _NavTile(
-          icon: Icons.sync_alt_rounded,
-          label: 'Socket Logs',
-          onTap: () => Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (_) => AllLogsScreen(
-                tagFilter: LogTag.socketTags.toSet(),
-                title: 'Socket Logs',
+    return ListenableBuilder(
+      listenable: DebugLogger.store,
+      builder: (context, _) {
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 2.4,
+          children: [
+            _NavTile(
+              icon: Icons.list_alt_rounded,
+              label: 'All Logs',
+              onTap: () => Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (_) => const AllLogsScreen()),
               ),
             ),
-          ),
-        ),
-        ListenableBuilder(
-          listenable: FilterState.instance,
-          builder: (_, __) => _NavTile(
-            icon: Icons.filter_list_rounded,
-            label: 'Filters',
-            badge: FilterState.instance.activeFilterCount > 0
-                ? '${FilterState.instance.activeFilterCount}'
-                : null,
-            onTap: () => Navigator.push(
-              context,
-              CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+            _NavTile(
+              icon: Icons.history_rounded,
+              label: 'Sessions',
+              onTap: () => Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (_) => const SessionsScreen()),
+              ),
             ),
-          ),
-        ),
-        _NavTile(
-          icon: Icons.settings_rounded,
-          label: 'Settings',
-          onTap: () => Navigator.push(
-            context,
-            CupertinoPageRoute(builder: (_) => const SettingsScreen()),
-          ),
-        ),
-      ],
+            if (DebugLogger.socketLoggingEnabled)
+              _NavTile(
+                icon: Icons.sync_alt_rounded,
+                label: 'Socket Logs',
+                onTap: () => Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (_) => AllLogsScreen(
+                      tagFilter: LogTag.socketTags.toSet(),
+                      title: 'Socket Logs',
+                    ),
+                  ),
+                ),
+              ),
+            ListenableBuilder(
+              listenable: FilterState.instance,
+              builder: (_, __) => _NavTile(
+                icon: Icons.filter_list_rounded,
+                label: 'Filters',
+                badge: FilterState.instance.activeFilterCount > 0
+                    ? '${FilterState.instance.activeFilterCount}'
+                    : null,
+                onTap: () => Navigator.push(
+                  context,
+                  CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+                ),
+              ),
+            ),
+            _NavTile(
+              icon: Icons.settings_rounded,
+              label: 'Settings',
+              onTap: () => Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

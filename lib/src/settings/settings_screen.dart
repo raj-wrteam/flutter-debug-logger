@@ -151,6 +151,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 inactiveTrackColor: Colors.white12,
               ),
               const CustomDivider(indent: 16, endIndent: 16),
+              const _SectionHeader('FLOATING BUBBLE'),
+              SwitchListTile(
+                tileColor: AppColors.background,
+                title: const CustomText('Reduce opacity when idle',
+                    style: TextStyle(color: Colors.white, fontSize: 14)),
+                subtitle: const CustomText('Dim the bubble after inactivity',
+                    style: TextStyle(color: Colors.white38, fontSize: 12)),
+                value: FilterState.instance.reduceBubbleOpacityWhenIdle,
+                onChanged: (v) =>
+                    FilterState.instance.setReduceBubbleOpacityWhenIdle(v),
+                activeThumbColor: Colors.orangeAccent,
+                inactiveTrackColor: Colors.white12,
+              ),
+              if (FilterState.instance.reduceBubbleOpacityWhenIdle) ...[
+                ListTile(
+                  tileColor: AppColors.background,
+                  title: const CustomText('Idle timeout',
+                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                  trailing: DropdownButton<int>(
+                    value: FilterState.instance.bubbleIdleTimeoutSeconds,
+                    dropdownColor: AppColors.elevated,
+                    style: const TextStyle(
+                        color: Colors.orangeAccent, fontSize: 14),
+                    underline: const SizedBox.shrink(),
+                    items: const [
+                      DropdownMenuItem(value: 2, child: Text('2 seconds')),
+                      DropdownMenuItem(value: 3, child: Text('3 seconds')),
+                      DropdownMenuItem(value: 5, child: Text('5 seconds')),
+                      DropdownMenuItem(value: 10, child: Text('10 seconds')),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) {
+                        FilterState.instance.setBubbleIdleTimeoutSeconds(v);
+                      }
+                    },
+                  ),
+                ),
+                ListTile(
+                  tileColor: AppColors.background,
+                  title: const CustomText('Idle opacity',
+                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                  trailing: DropdownButton<double>(
+                    value: FilterState.instance.bubbleIdleOpacity,
+                    dropdownColor: AppColors.elevated,
+                    style: const TextStyle(
+                        color: Colors.orangeAccent, fontSize: 14),
+                    underline: const SizedBox.shrink(),
+                    items: const [
+                      DropdownMenuItem(value: 0.15, child: Text('15%')),
+                      DropdownMenuItem(value: 0.3, child: Text('30%')),
+                      DropdownMenuItem(value: 0.5, child: Text('50%')),
+                      DropdownMenuItem(value: 0.7, child: Text('70%')),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) {
+                        FilterState.instance.setBubbleIdleOpacity(v);
+                      }
+                    },
+                  ),
+                ),
+              ],
+              const CustomDivider(indent: 16, endIndent: 16),
               const _SectionHeader('SOCKET LOGGING'),
               SwitchListTile(
                 tileColor: AppColors.background,

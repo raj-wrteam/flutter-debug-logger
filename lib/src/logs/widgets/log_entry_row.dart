@@ -35,16 +35,23 @@ class LogEntryRow extends StatelessWidget {
         if (method != null && url != null) return '$method ${_pathOnly(url)}';
       case LogTag.response:
         final status = meta['statusCode'];
+        final method = meta['method'] as String?;
         final url = meta['url'] as String?;
         final ms = meta['durationMs'];
         if (status != null && url != null) {
-          return '$status ${_pathOnly(url)}${ms != null ? '  ${ms}ms' : ''}';
+          final m = method != null ? '$method ' : '';
+          return '$status $m${_pathOnly(url)}${ms != null ? '  ${ms}ms' : ''}';
         }
       case LogTag.apiError:
         final status = meta['statusCode'];
+        final method = meta['method'] as String?;
         final url = meta['url'] as String?;
-        if (url != null)
-          return status != null ? '$status ${_pathOnly(url)}' : _pathOnly(url);
+        final ms = meta['durationMs'];
+        if (url != null) {
+          final s = status != null ? '$status ' : '';
+          final m = method != null ? '$method ' : '';
+          return '$s$m${_pathOnly(url)}${ms != null ? '  ${ms}ms' : ''}';
+        }
       case LogTag.curl:
         final raw = _stripPrefix(entry.message);
         final mMatch = RegExp(r'-X\s+(\w+)').firstMatch(raw);

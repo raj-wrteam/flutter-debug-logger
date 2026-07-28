@@ -609,6 +609,7 @@ class DebugLogger {
   /// Enables or disables recording of socket log events.
   static void setSocketLoggingEnabled(bool enabled) {
     _socketLoggingEnabled = enabled;
+    store.notifyStoreListeners();
   }
 
   // ── Deprecated ────────────────────────────────────────────────────────────

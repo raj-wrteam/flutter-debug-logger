@@ -80,11 +80,23 @@ class LogEntryDetailSheet extends StatelessWidget {
                 children: [
                   _MetaRow('Session', '#$sessionNumber'),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const _SheetSectionLabel('MESSAGE'),
-                      if (entry.tag == LogTag.curl &&
-                          entry.metadata['curl'] is String) ...[
+                  const _SheetSectionLabel('MESSAGE'),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: SelectableText(entry.fullMessage, style: _mono),
+                  ),
+                  if (entry.metadata['curl'] is String &&
+                      entry.tag != LogTag.curl) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const _SheetSectionLabel('cURL COMMAND'),
                         const Spacer(),
                         GestureDetector(
                           onTap: () async {
@@ -111,18 +123,55 @@ class LogEntryDetailSheet extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white10),
                     ),
-                    child: SelectableText(entry.fullMessage, style: _mono),
-                  ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: SelectableText(
+                        entry.metadata['curl'] as String,
+                        style: _mono,
+                      ),
+                    ),
+                  ],
+                  if (entry.metadata['requestBody'] is String) ...[
+                    const SizedBox(height: 16),
+                    const _SheetSectionLabel('REQUEST BODY'),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: SelectableText(
+                        entry.metadata['requestBody'] as String,
+                        style: _mono,
+                      ),
+                    ),
+                  ],
+                  if (entry.metadata['responseBody'] is String) ...[
+                    const SizedBox(height: 16),
+                    const _SheetSectionLabel('RESPONSE BODY'),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: SelectableText(
+                        entry.metadata['responseBody'] as String,
+                        style: _mono,
+                      ),
+                    ),
+                  ],
                   if (entry.visibleMetadata.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     const _SheetSectionLabel('METADATA'),

@@ -7,7 +7,11 @@ class FilterState extends ChangeNotifier {
 
   Set<LogLevel> activeLevels = {...LogLevel.values};
   Set<LogTag> activeTags = {...LogTag.values};
-  bool latestFirst = false;
+  bool latestFirst = true;
+
+  bool reduceBubbleOpacityWhenIdle = true;
+  int bubbleIdleTimeoutSeconds = 3;
+  double bubbleIdleOpacity = 0.3;
 
   bool get allLevelsActive => activeLevels.length == LogLevel.values.length;
   bool get allTagsActive => activeTags.length == LogTag.values.length;
@@ -49,6 +53,21 @@ class FilterState extends ChangeNotifier {
 
   void toggleLatestFirst() {
     latestFirst = !latestFirst;
+    notifyListeners();
+  }
+
+  void setReduceBubbleOpacityWhenIdle(bool value) {
+    reduceBubbleOpacityWhenIdle = value;
+    notifyListeners();
+  }
+
+  void setBubbleIdleTimeoutSeconds(int seconds) {
+    bubbleIdleTimeoutSeconds = seconds;
+    notifyListeners();
+  }
+
+  void setBubbleIdleOpacity(double opacity) {
+    bubbleIdleOpacity = opacity;
     notifyListeners();
   }
 }

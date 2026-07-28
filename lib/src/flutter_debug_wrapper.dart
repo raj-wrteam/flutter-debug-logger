@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'debug_logger.dart';
 import 'dashboard/dashboard_screen.dart';
+import 'debug_logger.dart';
+import 'filters/filter_state.dart';
 
 /// Wraps your app (or any subtree) with a persistent floating debug button.
 ///
@@ -56,11 +59,53 @@ class _DebugFabOverlayState extends State<_DebugFabOverlay> {
   Offset _position = const Offset(20, 100);
   bool _dragging = false;
   bool _isDebugScreenOpen = false;
+  bool _isIdle = false;
+  Timer? _idleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    FilterState.instance.addListener(_onFilterStateChanged);
+    _resetIdleTimer();
+  }
+
+  @override
+  void dispose() {
+    FilterState.instance.removeListener(_onFilterStateChanged);
+    _idleTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onFilterStateChanged() {
+    if (mounted) {
+      _resetIdleTimer();
+    }
+  }
+
+  void _resetIdleTimer() {
+    _idleTimer?.cancel();
+    if (_isIdle) {
+      setState(() {
+        _isIdle = false;
+      });
+    }
+    final fs = FilterState.instance;
+    if (fs.reduceBubbleOpacityWhenIdle) {
+      _idleTimer = Timer(Duration(seconds: fs.bubbleIdleTimeoutSeconds), () {
+        if (mounted) {
+          setState(() {
+            _isIdle = true;
+          });
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     final screenSize = mq.size;
+    final fs = FilterState.instance;
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -73,68 +118,88 @@ class _DebugFabOverlayState extends State<_DebugFabOverlay> {
             Positioned(
               right: _position.dx,
               bottom: _position.dy,
-              child: GestureDetector(
-                onPanUpdate: (d) {
-                  setState(() {
-                    _dragging = true;
-                    _position = Offset(
-                      (_position.dx - d.delta.dx)
-                          .clamp(8, screenSize.width - 72),
-                      (_position.dy - d.delta.dy)
-                          .clamp(8, screenSize.height - 72),
-                    );
-                  });
-                },
-                onPanEnd: (_) => setState(() => _dragging = false),
-                onTap: () {
-                  if (_dragging || _isDebugScreenOpen) return;
-                  NavigatorState? nav;
-                  try {
-                    nav = Navigator.of(context, rootNavigator: true);
-                  } catch (_) {
-                    nav = _findNavigatorState(context);
-                  }
-
-                  if (nav != null) {
-                    setState(() => _isDebugScreenOpen = true);
-                    nav
-                        .push(
-                      CupertinoPageRoute<void>(
-                        builder: (_) => const DashboardScreen(),
-                      ),
-                    )
-                        .then((_) {
-                      if (mounted) {
-                        setState(() => _isDebugScreenOpen = false);
-                      }
+              child: Listener(
+                onPointerDown: (_) => _resetIdleTimer(),
+                child: GestureDetector(
+                  onPanStart: (_) {
+                    _resetIdleTimer();
+                    setState(() => _dragging = true);
+                  },
+                  onPanUpdate: (d) {
+                    _resetIdleTimer();
+                    setState(() {
+                      _dragging = true;
+                      _position = Offset(
+                        (_position.dx - d.delta.dx)
+                            .clamp(8, screenSize.width - 72),
+                        (_position.dy - d.delta.dy)
+                            .clamp(8, screenSize.height - 72),
+                      );
                     });
-                  } else {
-                    debugPrint(
-                      'FlutterDebugLogger: Could not find Navigator in the widget tree.',
-                    );
-                  }
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color:
-                        Colors.black.withValues(alpha: _dragging ? 0.85 : 0.70),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                  },
+                  onPanEnd: (_) {
+                    _resetIdleTimer();
+                    setState(() => _dragging = false);
+                  },
+                  onTapDown: (_) => _resetIdleTimer(),
+                  onTap: () {
+                    _resetIdleTimer();
+                    if (_dragging || _isDebugScreenOpen) return;
+                    NavigatorState? nav;
+                    try {
+                      nav = Navigator.of(context, rootNavigator: true);
+                    } catch (_) {
+                      nav = _findNavigatorState(context);
+                    }
+
+                    if (nav != null) {
+                      setState(() => _isDebugScreenOpen = true);
+                      nav
+                          .push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => const DashboardScreen(),
+                        ),
+                      )
+                          .then((_) {
+                        if (mounted) {
+                          setState(() => _isDebugScreenOpen = false);
+                          _resetIdleTimer();
+                        }
+                      });
+                    } else {
+                      debugPrint(
+                        'FlutterDebugLogger: Could not find Navigator in the widget tree.',
+                      );
+                    }
+                  },
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: (_isIdle && fs.reduceBubbleOpacityWhenIdle)
+                        ? fs.bubbleIdleOpacity
+                        : 1.0,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.black
+                            .withValues(alpha: _dragging ? 0.85 : 0.70),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.bug_report_outlined,
-                    color: Colors.greenAccent,
-                    size: 22,
+                      child: const Icon(
+                        Icons.bug_report_outlined,
+                        color: Colors.greenAccent,
+                        size: 22,
+                      ),
+                    ),
                   ),
                 ),
               ),
