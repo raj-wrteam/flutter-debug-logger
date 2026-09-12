@@ -45,9 +45,11 @@ class LogStore extends ChangeNotifier {
   void deleteEntriesForDate(DateTime date) {
     final targetDate = DateTime(date.year, date.month, date.day);
     for (final session in _sessions) {
-      session.removeWhere((e) =>
-          DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
-          targetDate);
+      session.removeWhere(
+        (e) =>
+            DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
+            targetDate,
+      );
     }
     notifyListeners();
   }

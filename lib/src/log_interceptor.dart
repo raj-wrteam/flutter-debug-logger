@@ -84,7 +84,8 @@ class FlutterDebugLogInterceptor extends Interceptor {
         for (final file in data.files) {
           final filename = file.value.filename ?? 'file';
           buf.write(
-              " -F '${_escapeSingle(file.key)}=@${_escapeSingle(filename)}'");
+            " -F '${_escapeSingle(file.key)}=@${_escapeSingle(filename)}'",
+          );
         }
       } else if (data is Map || data is List) {
         buf.write(" -d '${_escapeSingle(jsonEncode(data))}'");
@@ -185,7 +186,8 @@ class FlutterDebugLogInterceptor extends Interceptor {
       if (response.data case final Map<String, dynamic> data
           when data['error'] == true) {
         DebugLogger.writeStructured(
-          message: '[Response Error]$_prefix ${response.requestOptions.path} '
+          message:
+              '[Response Error]$_prefix ${response.requestOptions.path} '
               '— ${data['message']} — $data',
           level: LogLevel.error,
           tag: LogTag.responseError,

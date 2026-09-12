@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../debug_logger.dart';
 import '../../log_level.dart';
@@ -13,9 +13,7 @@ class LogStatsCards extends StatelessWidget {
     return ListenableBuilder(
       listenable: DebugLogger.store,
       builder: (context, _) {
-        final counts = <LogLevel, int>{
-          for (final l in LogLevel.values) l: 0,
-        };
+        final counts = <LogLevel, int>{for (final l in LogLevel.values) l: 0};
         for (final s in DebugLogger.store.sessions) {
           for (final e in s.entries) {
             counts[e.level] = (counts[e.level] ?? 0) + 1;
@@ -23,12 +21,11 @@ class LogStatsCards extends StatelessWidget {
         }
         return Row(
           children: LogLevel.values
-              .map((level) => Expanded(
-                    child: _StatCard(
-                      level: level,
-                      count: counts[level] ?? 0,
-                    ),
-                  ))
+              .map(
+                (level) => Expanded(
+                  child: _StatCard(level: level, count: counts[level] ?? 0),
+                ),
+              )
               .toList(),
         );
       },

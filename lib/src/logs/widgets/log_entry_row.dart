@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../log_level.dart';
 import '../../models/log_entry.dart';
 import '../../shared/custom_text.dart';
 import '../../shared/custom_chip.dart';
-import '../../shared/debug_theme.dart';
 import 'log_entry_detail_sheet.dart';
+import '../../shared/debug_scope.dart';
 
 class LogEntryRow extends StatelessWidget {
   const LogEntryRow({
@@ -23,8 +23,11 @@ class LogEntryRow extends StatelessWidget {
   final bool? isSelected;
   final ValueChanged<bool?>? onSelectedChanged;
 
-  static const _mono =
-      TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5);
+  static const _mono = TextStyle(
+    fontFamily: 'monospace',
+    fontSize: 13,
+    height: 1.5,
+  );
 
   String _slug() {
     final meta = entry.metadata;
@@ -109,17 +112,16 @@ class LogEntryRow extends StatelessWidget {
       onTap: onSelectedChanged != null
           ? () => onSelectedChanged!(isSelected != true)
           : () => showModalBottomSheet<void>(
-                context: context,
-                backgroundColor: Colors.transparent,
-                isScrollControlled: true,
-                builder: (_) => Theme(
-                  data: DebugTheme.theme,
-                  child: LogEntryDetailSheet(
-                    entry: entry,
-                    sessionNumber: sessionNumber,
-                  ),
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (_) => DebugSurface(
+                child: LogEntryDetailSheet(
+                  entry: entry,
+                  sessionNumber: sessionNumber,
                 ),
               ),
+            ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: const BoxDecoration(
@@ -133,8 +135,9 @@ class LogEntryRow extends StatelessWidget {
                 isSelected == true
                     ? Icons.check_box_rounded
                     : Icons.check_box_outline_blank_rounded,
-                color:
-                    isSelected == true ? Colors.orangeAccent : Colors.white24,
+                color: isSelected == true
+                    ? Colors.orangeAccent
+                    : Colors.white24,
                 size: 18,
               ),
               const SizedBox(width: 8),
@@ -157,8 +160,11 @@ class LogEntryRow extends StatelessWidget {
               ),
             ),
             if (onSelectedChanged == null)
-              const Icon(Icons.chevron_right_rounded,
-                  size: 14, color: Colors.white24),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 14,
+                color: Colors.white24,
+              ),
           ],
         ),
       ),
@@ -185,14 +191,16 @@ class LogEntryRow extends StatelessWidget {
       if (match < 0) break;
       if (match > start)
         spans.add(TextSpan(text: text.substring(start, match)));
-      spans.add(TextSpan(
-        text: text.substring(match, match + q.length),
-        style: const TextStyle(
-          color: Colors.black,
-          backgroundColor: Colors.amberAccent,
-          fontWeight: FontWeight.w700,
+      spans.add(
+        TextSpan(
+          text: text.substring(match, match + q.length),
+          style: const TextStyle(
+            color: Colors.black,
+            backgroundColor: Colors.amberAccent,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-      ));
+      );
       start = match + q.length;
     }
     if (start < text.length) spans.add(TextSpan(text: text.substring(start)));

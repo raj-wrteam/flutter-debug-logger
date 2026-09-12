@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'dashboard/dashboard_screen.dart';
 import 'debug_logger.dart';
 import 'filters/filter_state.dart';
+import 'shared/debug_scope.dart';
 
 /// Wraps your app (or any subtree) with a persistent floating debug button.
 ///
@@ -130,10 +130,14 @@ class _DebugFabOverlayState extends State<_DebugFabOverlay> {
                     setState(() {
                       _dragging = true;
                       _position = Offset(
-                        (_position.dx - d.delta.dx)
-                            .clamp(8, screenSize.width - 72),
-                        (_position.dy - d.delta.dy)
-                            .clamp(8, screenSize.height - 72),
+                        (_position.dx - d.delta.dx).clamp(
+                          8,
+                          screenSize.width - 72,
+                        ),
+                        (_position.dy - d.delta.dy).clamp(
+                          8,
+                          screenSize.height - 72,
+                        ),
                       );
                     });
                   },
@@ -154,13 +158,9 @@ class _DebugFabOverlayState extends State<_DebugFabOverlay> {
 
                     if (nav != null) {
                       setState(() => _isDebugScreenOpen = true);
-                      nav
-                          .push(
-                        CupertinoPageRoute<void>(
-                          builder: (_) => const DashboardScreen(),
-                        ),
-                      )
-                          .then((_) {
+                      nav.push(debugPageRoute(const DashboardScreen())).then((
+                        _,
+                      ) {
                         if (mounted) {
                           setState(() => _isDebugScreenOpen = false);
                           _resetIdleTimer();
@@ -182,8 +182,9 @@ class _DebugFabOverlayState extends State<_DebugFabOverlay> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: Colors.black
-                            .withValues(alpha: _dragging ? 0.85 : 0.70),
+                        color: Colors.black.withValues(
+                          alpha: _dragging ? 0.85 : 0.70,
+                        ),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white24),
                         boxShadow: [

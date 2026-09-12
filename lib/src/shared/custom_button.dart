@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'custom_text.dart';
 
 class CustomButton extends StatelessWidget {
@@ -42,9 +42,10 @@ class CustomButton extends StatelessWidget {
         return ElevatedButton.icon(
           onPressed: onPressed,
           icon: Icon(icon, size: 16),
-          label: CustomText(label,
-              style:
-                  TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize)),
+          label: CustomText(
+            label,
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: backgroundColor,
             foregroundColor: foregroundColor,
@@ -65,8 +66,10 @@ class CustomButton extends StatelessWidget {
           elevation: 0,
           shape: shape,
         ),
-        child: CustomText(label,
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize)),
+        child: CustomText(
+          label,
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize),
+        ),
       );
     } else {
       if (icon != null) {

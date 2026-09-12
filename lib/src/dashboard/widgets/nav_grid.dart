@@ -1,5 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../debug_logger.dart';
 import '../../filters/filter_state.dart';
@@ -10,6 +9,7 @@ import '../../sessions/sessions_screen.dart';
 import '../../settings/settings_screen.dart';
 import '../../shared/app_colors.dart';
 import '../../shared/custom_text.dart';
+import '../../shared/debug_scope.dart';
 
 class NavGrid extends StatelessWidget {
   const NavGrid({super.key});
@@ -32,7 +32,7 @@ class NavGrid extends StatelessWidget {
               label: 'All Logs',
               onTap: () => Navigator.push(
                 context,
-                CupertinoPageRoute(builder: (_) => const AllLogsScreen()),
+                debugPageRoute(const AllLogsScreen()),
               ),
             ),
             _NavTile(
@@ -40,7 +40,7 @@ class NavGrid extends StatelessWidget {
               label: 'Sessions',
               onTap: () => Navigator.push(
                 context,
-                CupertinoPageRoute(builder: (_) => const SessionsScreen()),
+                debugPageRoute(const SessionsScreen()),
               ),
             ),
             if (DebugLogger.socketLoggingEnabled)
@@ -49,8 +49,8 @@ class NavGrid extends StatelessWidget {
                 label: 'Socket Logs',
                 onTap: () => Navigator.push(
                   context,
-                  CupertinoPageRoute(
-                    builder: (_) => AllLogsScreen(
+                  debugPageRoute(
+                    AllLogsScreen(
                       tagFilter: LogTag.socketTags.toSet(),
                       title: 'Socket Logs',
                     ),
@@ -67,7 +67,7 @@ class NavGrid extends StatelessWidget {
                     : null,
                 onTap: () => Navigator.push(
                   context,
-                  CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+                  debugPageRoute(const FiltersScreen()),
                 ),
               ),
             ),
@@ -76,7 +76,7 @@ class NavGrid extends StatelessWidget {
               label: 'Settings',
               onTap: () => Navigator.push(
                 context,
-                CupertinoPageRoute(builder: (_) => const SettingsScreen()),
+                debugPageRoute(const SettingsScreen()),
               ),
             ),
           ],
@@ -143,8 +143,11 @@ class _NavTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
             ],
-            const Icon(Icons.chevron_right_rounded,
-                color: Colors.white24, size: 16),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white24,
+              size: 16,
+            ),
           ],
         ),
       ),

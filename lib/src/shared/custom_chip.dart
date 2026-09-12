@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'custom_text.dart';
 
 class CustomChip extends StatelessWidget {
@@ -72,10 +72,7 @@ class CustomChip extends StatelessWidget {
     );
 
     if (onTap != null) {
-      chip = GestureDetector(
-        onTap: onTap,
-        child: chip,
-      );
+      chip = GestureDetector(onTap: onTap, child: chip);
     }
 
     return chip;

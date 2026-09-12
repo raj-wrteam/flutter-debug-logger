@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../debug_logger.dart';
 import '../logs/all_logs_screen.dart';
@@ -8,8 +8,8 @@ import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
-import '../shared/debug_theme.dart';
 import '../shared/log_empty_state.dart';
+import '../shared/debug_scope.dart';
 
 // ── Display item sealed class ─────────────────────────────────────────────────
 
@@ -117,7 +117,9 @@ class _SessionsScreenState extends State<SessionsScreen> {
   }
 
   Future<void> _deleteDateGroup(
-      DateTime date, List<LogSession> sessions) async {
+    DateTime date,
+    List<LogSession> sessions,
+  ) async {
     final label = _formatDateLabel(date);
     final confirmed = await showCupertinoDialog<bool>(
       context: context,
@@ -197,8 +199,11 @@ class _SessionsScreenState extends State<SessionsScreen> {
     // Date grouping
     final Map<DateTime, List<LogSession>> grouped = {};
     for (final s in sessions) {
-      final date =
-          DateTime(s.startTime.year, s.startTime.month, s.startTime.day);
+      final date = DateTime(
+        s.startTime.year,
+        s.startTime.month,
+        s.startTime.day,
+      );
       grouped.putIfAbsent(date, () => []).add(s);
     }
 
@@ -245,8 +250,7 @@ class _SessionsScreenState extends State<SessionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: DebugTheme.theme,
+    return DebugSurface(
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: CustomAppBar(
@@ -259,8 +263,9 @@ class _SessionsScreenState extends State<SessionsScreen> {
                     : Icons.view_headline_rounded,
                 size: 20,
               ),
-              tooltip:
-                  _groupMode == _GroupMode.flat ? 'Group by date' : 'Flat list',
+              tooltip: _groupMode == _GroupMode.flat
+                  ? 'Group by date'
+                  : 'Flat list',
               onPressed: () => setState(() {
                 _groupMode = _groupMode == _GroupMode.flat
                     ? _GroupMode.date
@@ -307,9 +312,12 @@ class _SessionsScreenState extends State<SessionsScreen> {
                             date: date,
                             sessionCount: sessions.length,
                             entryCount: sessions.fold(
-                                0, (sum, s) => sum + s.entries.length),
-                            isCollapsed:
-                                _collapsedDates.contains(_dateKey(date)),
+                              0,
+                              (sum, s) => sum + s.entries.length,
+                            ),
+                            isCollapsed: _collapsedDates.contains(
+                              _dateKey(date),
+                            ),
                             onToggle: () => setState(() {
                               final key = _dateKey(date);
                               if (_collapsedDates.contains(key)) {
@@ -332,17 +340,17 @@ class _SessionsScreenState extends State<SessionsScreen> {
                               session: session,
                               sessionNumber: sessionNumber,
                               selectMode: _selectMode,
-                              isSelected:
-                                  _selectedSessionIds.contains(session.id),
+                              isSelected: _selectedSessionIds.contains(
+                                session.id,
+                              ),
                               onTap: _selectMode
                                   ? () => _toggleSession(session.id)
                                   : () => Navigator.push(
-                                        context,
-                                        CupertinoPageRoute(
-                                          builder: (_) => AllLogsScreen(
-                                              sessionId: session.id),
-                                        ),
+                                      context,
+                                      debugPageRoute(
+                                        AllLogsScreen(sessionId: session.id),
                                       ),
+                                    ),
                             ),
                           ),
                       };
@@ -376,8 +384,10 @@ class _SessionsScreenState extends State<SessionsScreen> {
                 icon: Icons.ios_share_outlined,
                 label: 'Extract',
                 fontSize: 12,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 10,
+                ),
                 foregroundColor: Colors.white70,
                 side: const BorderSide(color: Colors.white24),
               ),
@@ -389,8 +399,10 @@ class _SessionsScreenState extends State<SessionsScreen> {
                 icon: Icons.delete_outline_rounded,
                 label: 'Delete',
                 fontSize: 12,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 10,
+                ),
                 foregroundColor: Colors.redAccent,
                 side: const BorderSide(color: Colors.redAccent),
               ),
@@ -596,11 +608,16 @@ class _ActionMenu extends StatelessWidget {
               height: 36,
               child: Row(
                 children: [
-                  Icon(Icons.ios_share_outlined,
-                      size: 14, color: Colors.white70),
+                  Icon(
+                    Icons.ios_share_outlined,
+                    size: 14,
+                    color: Colors.white70,
+                  ),
                   SizedBox(width: 10),
-                  CustomText('Extract',
-                      style: TextStyle(fontSize: 13, color: Colors.white70)),
+                  CustomText(
+                    'Extract',
+                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                  ),
                 ],
               ),
             ),
@@ -610,11 +627,16 @@ class _ActionMenu extends StatelessWidget {
               height: 36,
               child: Row(
                 children: [
-                  Icon(Icons.check_box_outlined,
-                      size: 14, color: Colors.white70),
+                  Icon(
+                    Icons.check_box_outlined,
+                    size: 14,
+                    color: Colors.white70,
+                  ),
                   SizedBox(width: 10),
-                  CustomText('Select All',
-                      style: TextStyle(fontSize: 13, color: Colors.white70)),
+                  CustomText(
+                    'Select All',
+                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                  ),
                 ],
               ),
             ),
@@ -624,11 +646,16 @@ class _ActionMenu extends StatelessWidget {
               height: 36,
               child: Row(
                 children: [
-                  Icon(Icons.delete_outline_rounded,
-                      size: 14, color: Colors.redAccent),
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    size: 14,
+                    color: Colors.redAccent,
+                  ),
                   SizedBox(width: 10),
-                  CustomText('Delete',
-                      style: TextStyle(fontSize: 13, color: Colors.redAccent)),
+                  CustomText(
+                    'Delete',
+                    style: TextStyle(fontSize: 13, color: Colors.redAccent),
+                  ),
                 ],
               ),
             ),
@@ -668,8 +695,9 @@ class _SessionCard extends StatelessWidget {
               : AppColors.surface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color:
-                isSelected ? Colors.orangeAccent.withAlpha(80) : Colors.white10,
+            color: isSelected
+                ? Colors.orangeAccent.withAlpha(80)
+                : Colors.white10,
           ),
         ),
         child: Row(
@@ -730,8 +758,11 @@ class _SessionCard extends StatelessWidget {
               ),
             ),
             if (!selectMode)
-              const Icon(Icons.chevron_right_rounded,
-                  color: Colors.white24, size: 18),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white24,
+                size: 18,
+              ),
           ],
         ),
       ),

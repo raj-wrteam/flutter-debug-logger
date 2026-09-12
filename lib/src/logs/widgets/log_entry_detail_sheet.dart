@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -100,9 +100,11 @@ class LogEntryDetailSheet extends StatelessWidget {
                         const Spacer(),
                         GestureDetector(
                           onTap: () async {
-                            await Clipboard.setData(ClipboardData(
-                              text: entry.metadata['curl'] as String,
-                            ));
+                            await Clipboard.setData(
+                              ClipboardData(
+                                text: entry.metadata['curl'] as String,
+                              ),
+                            );
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -232,10 +234,13 @@ class LogEntryDetailSheet extends StatelessWidget {
                       Expanded(
                         child: CustomButton(
                           onPressed: () async {
-                            await Clipboard.setData(ClipboardData(
-                              text: entry.formatAsText(
-                                  sessionNumber: sessionNumber),
-                            ));
+                            await Clipboard.setData(
+                              ClipboardData(
+                                text: entry.formatAsText(
+                                  sessionNumber: sessionNumber,
+                                ),
+                              ),
+                            );
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -258,11 +263,14 @@ class LogEntryDetailSheet extends StatelessWidget {
                         child: CustomButton(
                           onPressed: () async {
                             Navigator.pop(context);
-                            await SharePlus.instance.share(ShareParams(
-                              text: entry.formatAsText(
-                                  sessionNumber: sessionNumber),
-                              subject: 'Log Entry',
-                            ));
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                text: entry.formatAsText(
+                                  sessionNumber: sessionNumber,
+                                ),
+                                subject: 'Log Entry',
+                              ),
+                            );
                           },
                           icon: Icons.ios_share_outlined,
                           label: 'Export',
@@ -330,14 +338,19 @@ class _MetaRow extends StatelessWidget {
       child: CustomText.rich(
         TextSpan(
           style: const TextStyle(
-              fontFamily: 'monospace', fontSize: 13, height: 1.5),
+            fontFamily: 'monospace',
+            fontSize: 13,
+            height: 1.5,
+          ),
           children: [
             TextSpan(
               text: '${label.padRight(12)}: ',
               style: const TextStyle(color: Colors.white38),
             ),
             TextSpan(
-                text: value, style: const TextStyle(color: Colors.white70)),
+              text: value,
+              style: const TextStyle(color: Colors.white70),
+            ),
           ],
         ),
         textScaler: TextScaler.noScaling,
@@ -352,9 +365,6 @@ class _SheetSectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomSectionHeader(
-      text,
-      padding: EdgeInsets.zero,
-    );
+    return CustomSectionHeader(text, padding: EdgeInsets.zero);
   }
 }

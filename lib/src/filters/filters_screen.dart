@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../log_level.dart';
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
@@ -6,16 +6,15 @@ import '../shared/custom_divider.dart';
 import '../shared/custom_chip.dart';
 import '../shared/custom_text_button.dart';
 import '../shared/custom_section_header.dart';
-import '../shared/debug_theme.dart';
 import 'filter_state.dart';
+import '../shared/debug_scope.dart';
 
 class FiltersScreen extends StatelessWidget {
   const FiltersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: DebugTheme.theme,
+    return DebugSurface(
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: CustomAppBar(
@@ -47,14 +46,16 @@ class FiltersScreen extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: LogLevel.values
-                      .map((level) => _FilterChip(
-                            label: level.label,
-                            selected: FilterState.instance.activeLevels
-                                .contains(level),
-                            color: level.chipColor,
-                            onTap: () =>
-                                FilterState.instance.toggleLevel(level),
-                          ))
+                      .map(
+                        (level) => _FilterChip(
+                          label: level.label,
+                          selected: FilterState.instance.activeLevels.contains(
+                            level,
+                          ),
+                          color: level.chipColor,
+                          onTap: () => FilterState.instance.toggleLevel(level),
+                        ),
+                      )
                       .toList(),
                 ),
                 const SizedBox(height: 24),
@@ -65,29 +66,32 @@ class FiltersScreen extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    LogTag.curl,
-                    LogTag.request,
-                    LogTag.response,
-                    LogTag.body,
-                    LogTag.apiError,
-                    LogTag.responseError,
-                    LogTag.flutterError,
-                    LogTag.appError,
-                    LogTag.printLog,
-                    LogTag.stackTrace,
-                    LogTag.separator,
-                    LogTag.logger,
-                    LogTag.unknown,
-                  ]
-                      .map((tag) => _FilterChip(
-                            label: tag.label,
-                            selected:
-                                FilterState.instance.activeTags.contains(tag),
-                            color: tag.color,
-                            onTap: () => FilterState.instance.toggleTag(tag),
-                          ))
-                      .toList(),
+                  children:
+                      [
+                            LogTag.curl,
+                            LogTag.request,
+                            LogTag.response,
+                            LogTag.body,
+                            LogTag.apiError,
+                            LogTag.responseError,
+                            LogTag.flutterError,
+                            LogTag.appError,
+                            LogTag.printLog,
+                            LogTag.stackTrace,
+                            LogTag.separator,
+                            LogTag.logger,
+                            LogTag.unknown,
+                          ]
+                          .map(
+                            (tag) => _FilterChip(
+                              label: tag.label,
+                              selected: FilterState.instance.activeTags
+                                  .contains(tag),
+                              color: tag.color,
+                              onTap: () => FilterState.instance.toggleTag(tag),
+                            ),
+                          )
+                          .toList(),
                 ),
                 const SizedBox(height: 24),
                 const CustomDivider(),
@@ -98,13 +102,16 @@ class FiltersScreen extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: LogTag.socketTags
-                      .map((tag) => _FilterChip(
-                            label: tag.label,
-                            selected:
-                                FilterState.instance.activeTags.contains(tag),
-                            color: tag.color,
-                            onTap: () => FilterState.instance.toggleTag(tag),
-                          ))
+                      .map(
+                        (tag) => _FilterChip(
+                          label: tag.label,
+                          selected: FilterState.instance.activeTags.contains(
+                            tag,
+                          ),
+                          color: tag.color,
+                          onTap: () => FilterState.instance.toggleTag(tag),
+                        ),
+                      )
                       .toList(),
                 ),
                 const SizedBox(height: 32),
@@ -123,10 +130,7 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomSectionHeader(
-      text,
-      padding: EdgeInsets.zero,
-    );
+    return CustomSectionHeader(text, padding: EdgeInsets.zero);
   }
 }
 

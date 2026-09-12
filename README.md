@@ -27,12 +27,17 @@ dependencies:
     path: path/to/flutter_debug_logger # Or use git/pub.dev source
 ```
 
+> Requires Flutter >= 3.44. The package's UI is built on `package:material_ui`
+> / `package:cupertino_ui` (the decoupled Material/Cupertino libraries). Host
+> apps still on `package:flutter/material.dart` work too — the debug screens
+> inject their own localizations when the host's are the legacy ones.
+
 ### 2. Initialize in `main.dart`
 
 Configure `DebugLogger.init()` and wrap your root widget with `FlutterDebugLogger.wrap()`:
 
 ```dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_debug_logger/flutter_debug_logger.dart';
 
 void main() async {

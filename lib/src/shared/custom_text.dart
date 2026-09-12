@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CustomText extends StatelessWidget {
   final String? text;
@@ -22,8 +22,8 @@ class CustomText extends StatelessWidget {
     this.overflow,
     this.maxLines,
     this.textScaler,
-  })  : textSpan = null,
-        isRich = false;
+  }) : textSpan = null,
+       isRich = false;
 
   const CustomText.rich(
     this.textSpan, {
@@ -35,8 +35,8 @@ class CustomText extends StatelessWidget {
     this.overflow,
     this.maxLines,
     this.textScaler,
-  })  : text = null,
-        isRich = true;
+  }) : text = null,
+       isRich = true;
 
   @override
   Widget build(BuildContext context) {

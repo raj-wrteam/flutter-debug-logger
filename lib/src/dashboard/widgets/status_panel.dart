@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../debug_logger.dart';
 import '../../shared/app_colors.dart';
@@ -46,8 +46,9 @@ class _StatusPanelState extends State<StatusPanel>
       listenable: DebugLogger.store,
       builder: (context, _) {
         final active = DebugLogger.loggingActive;
-        final dotColor =
-            active ? const Color(0xFF4CAF50) : const Color(0xFFFF9800);
+        final dotColor = active
+            ? const Color(0xFF4CAF50)
+            : const Color(0xFFFF9800);
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -76,7 +77,7 @@ class _StatusPanelState extends State<StatusPanel>
                                 BoxShadow(
                                   color: dotColor.withAlpha(100),
                                   blurRadius: 6,
-                                )
+                                ),
                               ]
                             : null,
                       ),
@@ -98,7 +99,9 @@ class _StatusPanelState extends State<StatusPanel>
                     onTap: () => setState(DebugLogger.toggleLogging),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white10,
                         borderRadius: BorderRadius.circular(20),
@@ -107,7 +110,9 @@ class _StatusPanelState extends State<StatusPanel>
                       child: CustomText(
                         active ? 'Pause logging' : 'Resume logging',
                         style: const TextStyle(
-                            color: Colors.white70, fontSize: 12),
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),

@@ -14,7 +14,8 @@ class LogSession {
   void removeWhere(bool Function(LogEntry) test) => _entries.removeWhere(test);
 
   String formatAsText(int sessionNumber) {
-    final header = 'SESSION #$sessionNumber  •  ${_formatHeader(startTime)}'
+    final header =
+        'SESSION #$sessionNumber  •  ${_formatHeader(startTime)}'
         '  •  ${_entries.length} entries';
     final divider = '=' * 72;
     final entryBlocks = _entries

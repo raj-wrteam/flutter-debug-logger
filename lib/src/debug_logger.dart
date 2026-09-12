@@ -15,8 +15,10 @@ import 'models/log_session.dart';
 // Build-time flag:  flutter build apk --dart-define=FLUTTER_DEBUG_LOGGER=true
 // In kDebugMode the logger is ALWAYS active regardless of the flag.
 // ---------------------------------------------------------------------------
-const bool _kFlagEnabled =
-    bool.fromEnvironment('FLUTTER_DEBUG_LOGGER', defaultValue: false);
+const bool _kFlagEnabled = bool.fromEnvironment(
+  'FLUTTER_DEBUG_LOGGER',
+  defaultValue: false,
+);
 
 /// Returns true when the logger should be active.
 bool get flutterDebugLoggerEnabled => kDebugMode || _kFlagEnabled;
@@ -184,7 +186,8 @@ class DebugLogger {
   static void logSocketSend(String event, {dynamic data, String? url}) {
     if (!_socketLoggingEnabled) return;
     writeStructured(
-      message: '[Socket Send] $event${url != null ? ' → $url' : ''} '
+      message:
+          '[Socket Send] $event${url != null ? ' → $url' : ''} '
           '${_formatSocketData(data)}',
       level: LogLevel.info,
       tag: LogTag.socketSend,
@@ -200,7 +203,8 @@ class DebugLogger {
   static void logSocketReceive(String event, {dynamic data, String? url}) {
     if (!_socketLoggingEnabled) return;
     writeStructured(
-      message: '[Socket Receive] $event${url != null ? ' ← $url' : ''} '
+      message:
+          '[Socket Receive] $event${url != null ? ' ← $url' : ''} '
           '${_formatSocketData(data)}',
       level: LogLevel.info,
       tag: LogTag.socketReceive,
@@ -277,8 +281,9 @@ class DebugLogger {
   // ── JSONL flush ───────────────────────────────────────────────────────────
 
   static void _queueJsonlFlush(LogEntry entry) {
-    _pendingWrite =
-        _pendingWrite.then((_) => _flushEntry(entry)).catchError((_) {});
+    _pendingWrite = _pendingWrite
+        .then((_) => _flushEntry(entry))
+        .catchError((_) {});
   }
 
   static Future<void> _flushEntry(LogEntry entry) async {
@@ -291,17 +296,16 @@ class DebugLogger {
   }
 
   static void _queueSessionStartFlush(String sessionId, DateTime startTime) {
-    _pendingWrite = _pendingWrite.then((_) async {
-      final file = _logFile;
-      if (file == null) return;
-      await file.create(recursive: true);
-      final line = '${jsonEncode({
-            'tag': 'sessionStart',
-            'sessionId': sessionId,
-            'ts': startTime.toIso8601String()
-          })}\n';
-      await file.writeAsString(line, mode: FileMode.writeOnlyAppend);
-    }).catchError((_) {});
+    _pendingWrite = _pendingWrite
+        .then((_) async {
+          final file = _logFile;
+          if (file == null) return;
+          await file.create(recursive: true);
+          final line =
+              '${jsonEncode({'tag': 'sessionStart', 'sessionId': sessionId, 'ts': startTime.toIso8601String()})}\n';
+          await file.writeAsString(line, mode: FileMode.writeOnlyAppend);
+        })
+        .catchError((_) {});
   }
 
   // ── File replay ───────────────────────────────────────────────────────────
@@ -488,15 +492,18 @@ class DebugLogger {
   }
 
   /// Formats a list of log entries as a human-readable text block.
-  static String serializeEntriesToText(List<LogEntry> entries,
-      {String title = 'Exported Logs'}) {
+  static String serializeEntriesToText(
+    List<LogEntry> entries, {
+    String title = 'Exported Logs',
+  }) {
     final buf = StringBuffer();
     buf.writeln(title);
     buf.writeln('=' * 72);
     buf.writeln();
     for (final entry in entries) {
-      final sessionIndex =
-          store.sessions.indexWhere((s) => s.id == entry.sessionId);
+      final sessionIndex = store.sessions.indexWhere(
+        (s) => s.id == entry.sessionId,
+      );
       final sessionNum = sessionIndex >= 0 ? sessionIndex + 1 : 0;
       buf.writeln(entry.formatAsText(sessionNumber: sessionNum));
       buf.writeln();
@@ -505,8 +512,11 @@ class DebugLogger {
   }
 
   /// Shares arbitrary text content as a temporary file.
-  static Future<void> shareText(String content,
-      {required String fileName, String? subject}) async {
+  static Future<void> shareText(
+    String content, {
+    required String fileName,
+    String? subject,
+  }) async {
     if (!flutterDebugLoggerEnabled || !_initialized) return;
     final dir = _logDirectory ?? await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/$fileName');
@@ -544,11 +554,13 @@ class DebugLogger {
     final sessionStart = DateTime.now();
     store.startSession(_currentSessionId!, sessionStart);
     if (_logFile == null) return;
-    _pendingWrite = _pendingWrite.then((_) async {
-      final file = _logFile;
-      if (file == null) return;
-      if (await file.exists()) await file.writeAsString('');
-    }).catchError((_) {});
+    _pendingWrite = _pendingWrite
+        .then((_) async {
+          final file = _logFile;
+          if (file == null) return;
+          if (await file.exists()) await file.writeAsString('');
+        })
+        .catchError((_) {});
     _queueSessionStartFlush(_currentSessionId!, sessionStart);
   }
 
@@ -614,8 +626,10 @@ class DebugLogger {
 
   // ── Deprecated ────────────────────────────────────────────────────────────
 
-  @Deprecated('Read DebugLogger.store.sessions directly. '
-      'readLogContent() returns the raw .jsonl file which is not human-readable.')
+  @Deprecated(
+    'Read DebugLogger.store.sessions directly. '
+    'readLogContent() returns the raw .jsonl file which is not human-readable.',
+  )
   static Future<String?> readLogContent() async {
     if (!flutterDebugLoggerEnabled || !_initialized || _logFile == null) {
       return null;
@@ -625,14 +639,16 @@ class DebugLogger {
       if (!await _logFile!.exists() || await _logFile!.length() == 0) {
         return null;
       }
-      return _logFile!.readAsString();
+      return await _logFile!.readAsString();
     } on Exception catch (_) {
       return null;
     }
   }
 
-  @Deprecated('Read DebugLogger.store.sessions directly. '
-      'readLogLines() returned raw text lines replaced by structured LogEntry objects.')
+  @Deprecated(
+    'Read DebugLogger.store.sessions directly. '
+    'readLogLines() returned raw text lines replaced by structured LogEntry objects.',
+  )
   static Future<List<String>> readLogLines() async {
     // ignore: deprecated_member_use_from_same_package
     final content = await readLogContent();

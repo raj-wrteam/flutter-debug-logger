@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../shared/app_colors.dart';
 
@@ -51,8 +51,11 @@ class LogSearchBar extends StatelessWidget {
               onTap: onClear,
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
-                child:
-                    Icon(Icons.close_rounded, color: Colors.white38, size: 18),
+                child: Icon(
+                  Icons.close_rounded,
+                  color: Colors.white38,
+                  size: 18,
+                ),
               ),
             ),
         ],

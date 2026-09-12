@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // ---------------------------------------------------------------------------
 // Log level enum — used for writing, filtering, and colour-coding log lines.
@@ -22,39 +22,39 @@ enum LogLevel {
 
   /// Short uppercase tag written into each log line, e.g. `[INFO]`.
   String get tag => switch (this) {
-        LogLevel.info => '[INFO]',
-        LogLevel.medium => '[MEDIUM]',
-        LogLevel.error => '[ERROR]',
-        LogLevel.critical => '[CRITICAL]',
-      };
+    LogLevel.info => '[INFO]',
+    LogLevel.medium => '[MEDIUM]',
+    LogLevel.error => '[ERROR]',
+    LogLevel.critical => '[CRITICAL]',
+  };
 
   // ── Display label for filter chips ────────────────────────────────────────
 
   /// Human-readable label shown in filter chips.
   String get label => switch (this) {
-        LogLevel.info => 'Info',
-        LogLevel.medium => 'Medium',
-        LogLevel.error => 'Error',
-        LogLevel.critical => 'Critical',
-      };
+    LogLevel.info => 'Info',
+    LogLevel.medium => 'Medium',
+    LogLevel.error => 'Error',
+    LogLevel.critical => 'Critical',
+  };
 
   // ── Colour coding ─────────────────────────────────────────────────────────
 
   /// Text colour used in the log viewer for lines at this level.
   Color get color => switch (this) {
-        LogLevel.info => const Color(0xFFCFD8DC), // white-ish
-        LogLevel.medium => const Color(0xFFFFB74D), // orange
-        LogLevel.error => const Color(0xFFEF5350), // red
-        LogLevel.critical => const Color(0xFFEF5350), // red (same as error)
-      };
+    LogLevel.info => const Color(0xFFCFD8DC), // white-ish
+    LogLevel.medium => const Color(0xFFFFB74D), // orange
+    LogLevel.error => const Color(0xFFEF5350), // red
+    LogLevel.critical => const Color(0xFFEF5350), // red (same as error)
+  };
 
   /// Chip accent colour (slightly more vivid than text colour).
   Color get chipColor => switch (this) {
-        LogLevel.info => const Color(0xFFB0BEC5),
-        LogLevel.medium => const Color(0xFFFF9800),
-        LogLevel.error => const Color(0xFFF44336),
-        LogLevel.critical => const Color(0xFFD32F2F),
-      };
+    LogLevel.info => const Color(0xFFB0BEC5),
+    LogLevel.medium => const Color(0xFFFF9800),
+    LogLevel.error => const Color(0xFFF44336),
+    LogLevel.critical => const Color(0xFFD32F2F),
+  };
 
   // ── Reverse lookup: tag string → LogLevel ─────────────────────────────────
 
@@ -140,51 +140,51 @@ enum LogTag {
 
   /// The display colour for this tag type in the log viewer.
   Color get color => switch (this) {
-        LogTag.separator => const Color(0xFFFFB74D), // amber
-        LogTag.request => const Color(0xFF66BB6A), // green
-        LogTag.response => const Color(0xFF42A5F5), // blue
-        LogTag.body => const Color(0xFFB0BEC5), // cool-grey
-        LogTag.curl => const Color(0xFFAB47BC), // purple
-        LogTag.logger => const Color(0xFFFFB74D), // amber
-        LogTag.responseError => const Color(0xFFFF7043), // deep-orange
-        LogTag.apiError => const Color(0xFFEF5350), // red
-        LogTag.flutterError => const Color(0xFFEF5350), // red
-        LogTag.appError => const Color(0xFFEF5350), // red
-        LogTag.socketConnect => const Color(0xFF26A69A), // teal
-        LogTag.socketDisconnect => const Color(0xFF78909C), // blue-grey
-        LogTag.socketSend => const Color(0xFF00BCD4), // cyan
-        LogTag.socketReceive => const Color(0xFF009688), // dark teal
-        LogTag.socketEvent => const Color(0xFF7E57C2), // deep purple
-        LogTag.socketError => const Color(0xFFFF5252), // red
-        LogTag.printLog => const Color(0xFFB0BEC5), // cool-grey
-        LogTag.stackTrace => const Color(0xFFB0BEC5), // cool-grey
-        LogTag.unknown => const Color(0xFFCFD8DC), // light grey-blue
-      };
+    LogTag.separator => const Color(0xFFFFB74D), // amber
+    LogTag.request => const Color(0xFF66BB6A), // green
+    LogTag.response => const Color(0xFF42A5F5), // blue
+    LogTag.body => const Color(0xFFB0BEC5), // cool-grey
+    LogTag.curl => const Color(0xFFAB47BC), // purple
+    LogTag.logger => const Color(0xFFFFB74D), // amber
+    LogTag.responseError => const Color(0xFFFF7043), // deep-orange
+    LogTag.apiError => const Color(0xFFEF5350), // red
+    LogTag.flutterError => const Color(0xFFEF5350), // red
+    LogTag.appError => const Color(0xFFEF5350), // red
+    LogTag.socketConnect => const Color(0xFF26A69A), // teal
+    LogTag.socketDisconnect => const Color(0xFF78909C), // blue-grey
+    LogTag.socketSend => const Color(0xFF00BCD4), // cyan
+    LogTag.socketReceive => const Color(0xFF009688), // dark teal
+    LogTag.socketEvent => const Color(0xFF7E57C2), // deep purple
+    LogTag.socketError => const Color(0xFFFF5252), // red
+    LogTag.printLog => const Color(0xFFB0BEC5), // cool-grey
+    LogTag.stackTrace => const Color(0xFFB0BEC5), // cool-grey
+    LogTag.unknown => const Color(0xFFCFD8DC), // light grey-blue
+  };
 
   // ── Display label for filter chips ────────────────────────────────────────
 
   /// Human-readable label shown in filter chips / menu items.
   String get label => switch (this) {
-        LogTag.separator => 'Session Separators',
-        LogTag.request => 'API Requests',
-        LogTag.response => 'API Responses',
-        LogTag.body => 'Payload Bodies',
-        LogTag.curl => 'cURL Commands',
-        LogTag.logger => 'Logger Events',
-        LogTag.responseError => 'Response Errors',
-        LogTag.apiError => 'API/Network Errors',
-        LogTag.flutterError => 'Flutter Errors',
-        LogTag.appError => 'App Errors',
-        LogTag.socketConnect => 'Socket Connect',
-        LogTag.socketDisconnect => 'Socket Disconnect',
-        LogTag.socketSend => 'Socket Send',
-        LogTag.socketReceive => 'Socket Receive',
-        LogTag.socketEvent => 'Socket Event',
-        LogTag.socketError => 'Socket Error',
-        LogTag.printLog => 'Console Prints',
-        LogTag.stackTrace => 'Stack Traces',
-        LogTag.unknown => 'Other Logs',
-      };
+    LogTag.separator => 'Session Separators',
+    LogTag.request => 'API Requests',
+    LogTag.response => 'API Responses',
+    LogTag.body => 'Payload Bodies',
+    LogTag.curl => 'cURL Commands',
+    LogTag.logger => 'Logger Events',
+    LogTag.responseError => 'Response Errors',
+    LogTag.apiError => 'API/Network Errors',
+    LogTag.flutterError => 'Flutter Errors',
+    LogTag.appError => 'App Errors',
+    LogTag.socketConnect => 'Socket Connect',
+    LogTag.socketDisconnect => 'Socket Disconnect',
+    LogTag.socketSend => 'Socket Send',
+    LogTag.socketReceive => 'Socket Receive',
+    LogTag.socketEvent => 'Socket Event',
+    LogTag.socketError => 'Socket Error',
+    LogTag.printLog => 'Console Prints',
+    LogTag.stackTrace => 'Stack Traces',
+    LogTag.unknown => 'Other Logs',
+  };
 
   // ── Reverse lookup: message → LogTag ─────────────────────────────────────
 
@@ -202,7 +202,8 @@ enum LogTag {
     if (message.contains('[Response Error]')) return LogTag.responseError;
     if (message.contains('[Request Body]') ||
         message.contains('[Response Body]') ||
-        message.contains('[Error Body]')) return LogTag.body;
+        message.contains('[Error Body]'))
+      return LogTag.body;
     if (message.contains('[cURL]')) return LogTag.curl;
     if (message.contains('[Logger]')) return LogTag.logger;
     if (message.contains('[Response]')) return LogTag.response;
@@ -213,7 +214,8 @@ enum LogTag {
     if (message.contains('[Print]')) return LogTag.printLog;
     if (message.trimLeft().startsWith('#') ||
         message.startsWith('    ') ||
-        message.startsWith('\t')) return LogTag.stackTrace;
+        message.startsWith('\t'))
+      return LogTag.stackTrace;
     return LogTag.unknown;
   }
 
@@ -228,8 +230,10 @@ enum LogTag {
     LogTag.socketError,
   ];
 
-  @Deprecated('Use LogTag.fromMessage() instead. fromLine() expects the old '
-      'text-format line with timestamp/level prefix which no longer exists.')
+  @Deprecated(
+    'Use LogTag.fromMessage() instead. fromLine() expects the old '
+    'text-format line with timestamp/level prefix which no longer exists.',
+  )
   static LogTag fromLine(String line) {
     if (line.contains('====') || line.contains('SESSION START')) {
       return LogTag.separator;
@@ -237,7 +241,8 @@ enum LogTag {
     if (line.contains('[Response Error]')) return LogTag.responseError;
     if (line.contains('[Request Body]') ||
         line.contains('[Response Body]') ||
-        line.contains('[Error Body]')) return LogTag.body;
+        line.contains('[Error Body]'))
+      return LogTag.body;
     if (line.contains('[cURL]')) return LogTag.curl;
     if (line.contains('[Logger]')) return LogTag.logger;
     if (line.contains('[Response]')) return LogTag.response;

@@ -1,20 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_divider.dart';
-import '../shared/debug_theme.dart';
 import 'widgets/log_stats_cards.dart';
 import 'widgets/nav_grid.dart';
 import 'widgets/status_panel.dart';
+import '../shared/debug_scope.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: DebugTheme.theme,
+    return DebugSurface(
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: CustomAppBar(

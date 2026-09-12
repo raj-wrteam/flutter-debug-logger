@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -10,8 +10,8 @@ import '../shared/custom_text.dart';
 import '../shared/custom_divider.dart';
 import '../shared/custom_section_header.dart';
 import '../shared/custom_text_button.dart';
-import '../shared/debug_theme.dart';
 import '../shared/log_share_confirm_sheet.dart';
+import '../shared/debug_scope.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,11 +23,13 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _snack(String msg) async {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: CustomText(msg),
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 2),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: CustomText(msg),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _copyAll() async {
@@ -80,10 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Theme(
-        data: DebugTheme.theme,
-        child: const LogShareConfirmSheet(),
-      ),
+      builder: (_) => DebugSurface(child: const LogShareConfirmSheet()),
     );
     if (ok != true || !mounted) return;
     await _exportLogs();
@@ -94,8 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _clear() async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => Theme(
-        data: DebugTheme.theme,
+      builder: (_) => DebugSurface(
         child: AlertDialog(
           backgroundColor: AppColors.elevated,
           title: const CustomText(
@@ -128,13 +126,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: DebugTheme.theme,
+    return DebugSurface(
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: const CustomAppBar(
-          title: 'Settings & Actions',
-        ),
+        appBar: const CustomAppBar(title: 'Settings & Actions'),
         body: ListenableBuilder(
           listenable: FilterState.instance,
           builder: (context, _) => ListView(
@@ -143,8 +138,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionHeader('DISPLAY'),
               SwitchListTile(
                 tileColor: AppColors.background,
-                title: const CustomText('Latest first',
-                    style: TextStyle(color: Colors.white, fontSize: 14)),
+                title: const CustomText(
+                  'Latest first',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
                 value: FilterState.instance.latestFirst,
                 onChanged: (_) => FilterState.instance.toggleLatestFirst(),
                 activeThumbColor: Colors.orangeAccent,
@@ -154,10 +151,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionHeader('FLOATING BUBBLE'),
               SwitchListTile(
                 tileColor: AppColors.background,
-                title: const CustomText('Reduce opacity when idle',
-                    style: TextStyle(color: Colors.white, fontSize: 14)),
-                subtitle: const CustomText('Dim the bubble after inactivity',
-                    style: TextStyle(color: Colors.white38, fontSize: 12)),
+                title: const CustomText(
+                  'Reduce opacity when idle',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                subtitle: const CustomText(
+                  'Dim the bubble after inactivity',
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                ),
                 value: FilterState.instance.reduceBubbleOpacityWhenIdle,
                 onChanged: (v) =>
                     FilterState.instance.setReduceBubbleOpacityWhenIdle(v),
@@ -167,13 +168,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (FilterState.instance.reduceBubbleOpacityWhenIdle) ...[
                 ListTile(
                   tileColor: AppColors.background,
-                  title: const CustomText('Idle timeout',
-                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                  title: const CustomText(
+                    'Idle timeout',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
                   trailing: DropdownButton<int>(
                     value: FilterState.instance.bubbleIdleTimeoutSeconds,
                     dropdownColor: AppColors.elevated,
                     style: const TextStyle(
-                        color: Colors.orangeAccent, fontSize: 14),
+                      color: Colors.orangeAccent,
+                      fontSize: 14,
+                    ),
                     underline: const SizedBox.shrink(),
                     items: const [
                       DropdownMenuItem(value: 2, child: Text('2 seconds')),
@@ -190,13 +195,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 ListTile(
                   tileColor: AppColors.background,
-                  title: const CustomText('Idle opacity',
-                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                  title: const CustomText(
+                    'Idle opacity',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
                   trailing: DropdownButton<double>(
                     value: FilterState.instance.bubbleIdleOpacity,
                     dropdownColor: AppColors.elevated,
                     style: const TextStyle(
-                        color: Colors.orangeAccent, fontSize: 14),
+                      color: Colors.orangeAccent,
+                      fontSize: 14,
+                    ),
                     underline: const SizedBox.shrink(),
                     items: const [
                       DropdownMenuItem(value: 0.15, child: Text('15%')),
@@ -216,8 +225,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionHeader('SOCKET LOGGING'),
               SwitchListTile(
                 tileColor: AppColors.background,
-                title: const CustomText('Record socket logs',
-                    style: TextStyle(color: Colors.white, fontSize: 14)),
+                title: const CustomText(
+                  'Record socket logs',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
                 value: DebugLogger.socketLoggingEnabled,
                 onChanged: (v) {
                   DebugLogger.setSocketLoggingEnabled(v);

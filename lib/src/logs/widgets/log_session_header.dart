@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/log_session.dart';
 import '../../shared/app_colors.dart';
@@ -118,8 +118,11 @@ class _ActionMenu extends StatelessWidget {
       width: 24,
       height: 24,
       child: PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert_rounded,
-            size: 16, color: Colors.white38),
+        icon: const Icon(
+          Icons.more_vert_rounded,
+          size: 16,
+          color: Colors.white38,
+        ),
         iconSize: 16,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(minWidth: 140),
@@ -147,11 +150,16 @@ class _ActionMenu extends StatelessWidget {
               height: 36,
               child: Row(
                 children: [
-                  Icon(Icons.ios_share_outlined,
-                      size: 14, color: Colors.white70),
+                  Icon(
+                    Icons.ios_share_outlined,
+                    size: 14,
+                    color: Colors.white70,
+                  ),
                   SizedBox(width: 10),
-                  CustomText('Extract',
-                      style: TextStyle(fontSize: 13, color: Colors.white70)),
+                  CustomText(
+                    'Extract',
+                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                  ),
                 ],
               ),
             ),
@@ -161,11 +169,16 @@ class _ActionMenu extends StatelessWidget {
               height: 36,
               child: Row(
                 children: [
-                  Icon(Icons.check_box_outlined,
-                      size: 14, color: Colors.white70),
+                  Icon(
+                    Icons.check_box_outlined,
+                    size: 14,
+                    color: Colors.white70,
+                  ),
                   SizedBox(width: 10),
-                  CustomText('Select All',
-                      style: TextStyle(fontSize: 13, color: Colors.white70)),
+                  CustomText(
+                    'Select All',
+                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                  ),
                 ],
               ),
             ),
@@ -175,11 +188,16 @@ class _ActionMenu extends StatelessWidget {
               height: 36,
               child: Row(
                 children: [
-                  Icon(Icons.delete_outline_rounded,
-                      size: 14, color: Colors.redAccent),
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    size: 14,
+                    color: Colors.redAccent,
+                  ),
                   SizedBox(width: 10),
-                  CustomText('Delete',
-                      style: TextStyle(fontSize: 13, color: Colors.redAccent)),
+                  CustomText(
+                    'Delete',
+                    style: TextStyle(fontSize: 13, color: Colors.redAccent),
+                  ),
                 ],
               ),
             ),

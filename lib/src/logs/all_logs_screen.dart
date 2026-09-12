@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../debug_logger.dart';
 import '../filters/filter_state.dart';
@@ -11,12 +11,12 @@ import '../shared/app_colors.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
-import '../shared/debug_theme.dart';
 import '../shared/log_empty_state.dart';
 import 'widgets/log_date_header.dart';
 import 'widgets/log_entry_row.dart';
 import 'widgets/log_search_bar.dart';
 import 'widgets/log_session_header.dart';
+import '../shared/debug_scope.dart';
 
 // ── Display item sealed class ──────────────────────────────────────────────────
 
@@ -45,12 +45,7 @@ enum _GroupMode { session, date }
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 class AllLogsScreen extends StatefulWidget {
-  const AllLogsScreen({
-    super.key,
-    this.sessionId,
-    this.tagFilter,
-    this.title,
-  });
+  const AllLogsScreen({super.key, this.sessionId, this.tagFilter, this.title});
 
   /// When set, only logs from this session are shown.
   final String? sessionId;
@@ -169,27 +164,36 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
       for (final session in _sessions) {
         for (final e in session.entries) {
           if (_entryPassesFilter(e) && _entryMatchesSearch(e)) {
-            final date =
-                DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day);
+            final date = DateTime(
+              e.timestamp.year,
+              e.timestamp.month,
+              e.timestamp.day,
+            );
             grouped.putIfAbsent(date, () => []).add(e);
           }
         }
       }
 
       final sortedDates = grouped.keys.toList()
-        ..sort((a, b) =>
-            FilterState.instance.latestFirst ? b.compareTo(a) : a.compareTo(b));
+        ..sort(
+          (a, b) => FilterState.instance.latestFirst
+              ? b.compareTo(a)
+              : a.compareTo(b),
+        );
 
       for (final date in sortedDates) {
         final entries = grouped[date]!;
-        entries.sort((a, b) => FilterState.instance.latestFirst
-            ? b.timestamp.compareTo(a.timestamp)
-            : a.timestamp.compareTo(b.timestamp));
+        entries.sort(
+          (a, b) => FilterState.instance.latestFirst
+              ? b.timestamp.compareTo(a.timestamp)
+              : a.timestamp.compareTo(b.timestamp),
+        );
         items.add(_DateHeaderItem(date, entries.length));
         if (_collapsedDates.contains(_dateKey(date))) continue;
         for (final e in entries) {
-          final sessionIndex =
-              allSessions.indexWhere((s) => s.id == e.sessionId);
+          final sessionIndex = allSessions.indexWhere(
+            (s) => s.id == e.sessionId,
+          );
           final sessionNumber = sessionIndex >= 0 ? sessionIndex + 1 : 0;
           items.add(_EntryItem(e, sessionNumber));
         }
@@ -221,11 +225,15 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
         .where(_entryMatchesSearch)
         .toList();
     if (entries.isEmpty) return;
-    final text = DebugLogger.serializeEntriesToText(entries,
-        title: 'Session #$sessionNumber Logs');
-    DebugLogger.shareText(text,
-        fileName: 'session_${sessionNumber}_logs.txt',
-        subject: 'Session #$sessionNumber Logs');
+    final text = DebugLogger.serializeEntriesToText(
+      entries,
+      title: 'Session #$sessionNumber Logs',
+    );
+    DebugLogger.shareText(
+      text,
+      fileName: 'session_${sessionNumber}_logs.txt',
+      subject: 'Session #$sessionNumber Logs',
+    );
   }
 
   void _selectSession(LogSession session) {
@@ -245,8 +253,9 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Delete Session'),
-        content:
-            Text('Are you sure you want to delete Session #$sessionNumber?'),
+        content: Text(
+          'Are you sure you want to delete Session #$sessionNumber?',
+        ),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -268,28 +277,36 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   void _extractDate(DateTime date) {
     final entries = _sessions
         .expand((s) => s.entries)
-        .where((e) =>
-            DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
-            date)
+        .where(
+          (e) =>
+              DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
+              date,
+        )
         .where(_entryPassesFilter)
         .where(_entryMatchesSearch)
         .toList();
     if (entries.isEmpty) return;
     final formattedDate =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final text = DebugLogger.serializeEntriesToText(entries,
-        title: 'Logs for $formattedDate');
-    DebugLogger.shareText(text,
-        fileName: 'logs_$formattedDate.txt',
-        subject: 'Logs for $formattedDate');
+    final text = DebugLogger.serializeEntriesToText(
+      entries,
+      title: 'Logs for $formattedDate',
+    );
+    DebugLogger.shareText(
+      text,
+      fileName: 'logs_$formattedDate.txt',
+      subject: 'Logs for $formattedDate',
+    );
   }
 
   void _selectDate(DateTime date) {
     final entries = _sessions
         .expand((s) => s.entries)
-        .where((e) =>
-            DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
-            date)
+        .where(
+          (e) =>
+              DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day) ==
+              date,
+        )
         .where(_entryPassesFilter)
         .where(_entryMatchesSearch)
         .toList();
@@ -308,7 +325,8 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Delete Logs by Date'),
         content: Text(
-            'Are you sure you want to delete all logs for $formattedDate?'),
+          'Are you sure you want to delete all logs for $formattedDate?',
+        ),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -339,8 +357,9 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   }
 
   String _buildFilterSummary() {
-    final levels =
-        FilterState.instance.activeLevels.map((l) => l.label).join(', ');
+    final levels = FilterState.instance.activeLevels
+        .map((l) => l.label)
+        .join(', ');
     return 'Showing $_visibleEntries/$_totalEntries · $levels';
   }
 
@@ -350,13 +369,13 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
   Widget build(BuildContext context) {
     String title = widget.title ?? 'All Logs';
     if (widget.sessionId != null) {
-      final idx = DebugLogger.store.sessions
-          .indexWhere((s) => s.id == widget.sessionId);
+      final idx = DebugLogger.store.sessions.indexWhere(
+        (s) => s.id == widget.sessionId,
+      );
       if (idx >= 0) title = 'Session #${idx + 1}';
     }
 
-    return Theme(
-      data: DebugTheme.theme,
+    return DebugSurface(
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: CustomAppBar(
@@ -385,12 +404,13 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                     icon: const Icon(Icons.filter_list_rounded, size: 20),
                     onPressed: () => Navigator.push(
                       context,
-                      CupertinoPageRoute(builder: (_) => const FiltersScreen()),
+                      debugPageRoute(const FiltersScreen()),
                     ),
                   ),
                   ListenableBuilder(
                     listenable: FilterState.instance,
-                    builder: (_, __) => FilterState.instance.activeFilterCount > 0
+                    builder: (_, __) =>
+                        FilterState.instance.activeFilterCount > 0
                         ? Positioned(
                             right: 8,
                             top: 8,
@@ -425,17 +445,19 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
             ),
             ListenableBuilder(
               listenable: FilterState.instance,
-              builder: (_, __) => (widget.tagFilter == null && _hasAnyFiltersActive)
+              builder: (_, __) =>
+                  (widget.tagFilter == null && _hasAnyFiltersActive)
                   ? GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        CupertinoPageRoute(
-                            builder: (_) => const FiltersScreen()),
+                        debugPageRoute(const FiltersScreen()),
                       ),
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(12, 0, 12, 4),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.elevated,
                           borderRadius: BorderRadius.circular(6),
@@ -453,8 +475,11 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                                 ),
                               ),
                             ),
-                            const Icon(Icons.chevron_right_rounded,
-                                size: 14, color: Colors.white24),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              size: 14,
+                              color: Colors.white24,
+                            ),
                           ],
                         ),
                       ),
@@ -528,24 +553,24 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                     onDelete: () => _deleteDate(date),
                   ),
                 _EntryItem(:final entry, :final sessionNumber) => LogEntryRow(
-                    entry: entry,
-                    sessionNumber: sessionNumber,
-                    query: _query,
-                    isSelected: _selectMode
-                        ? _selectedEntryIds.contains(entry.id)
-                        : null,
-                    onSelectedChanged: _selectMode
-                        ? (selected) {
-                            setState(() {
-                              if (selected == true) {
-                                _selectedEntryIds.add(entry.id);
-                              } else {
-                                _selectedEntryIds.remove(entry.id);
-                              }
-                            });
-                          }
-                        : null,
-                  ),
+                  entry: entry,
+                  sessionNumber: sessionNumber,
+                  query: _query,
+                  isSelected: _selectMode
+                      ? _selectedEntryIds.contains(entry.id)
+                      : null,
+                  onSelectedChanged: _selectMode
+                      ? (selected) {
+                          setState(() {
+                            if (selected == true) {
+                              _selectedEntryIds.add(entry.id);
+                            } else {
+                              _selectedEntryIds.remove(entry.id);
+                            }
+                          });
+                        }
+                      : null,
+                ),
               };
             },
           ),
@@ -605,18 +630,23 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                                 .where((e) => _selectedEntryIds.contains(e.id))
                                 .toList();
                             final text = DebugLogger.serializeEntriesToText(
-                                entries,
-                                title: 'Selected Logs');
-                            DebugLogger.shareText(text,
-                                fileName: 'selected_logs.txt',
-                                subject: 'Selected Logs');
+                              entries,
+                              title: 'Selected Logs',
+                            );
+                            DebugLogger.shareText(
+                              text,
+                              fileName: 'selected_logs.txt',
+                              subject: 'Selected Logs',
+                            );
                           }
                         : null,
                     icon: Icons.ios_share_outlined,
                     label: 'Extract',
                     fontSize: 12,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
                     foregroundColor: Colors.white70,
                     side: const BorderSide(color: Colors.white24),
                   ),
@@ -630,8 +660,9 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                               context: context,
                               builder: (ctx) => CupertinoAlertDialog(
                                 title: const Text('Delete Selected'),
-                                content:
-                                    Text('Delete $count selected log entries?'),
+                                content: Text(
+                                  'Delete $count selected log entries?',
+                                ),
                                 actions: [
                                   CupertinoDialogAction(
                                     child: const Text('Cancel'),
@@ -646,8 +677,9 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                               ),
                             );
                             if (confirmed == true) {
-                              DebugLogger.store
-                                  .deleteEntries(_selectedEntryIds);
+                              DebugLogger.store.deleteEntries(
+                                _selectedEntryIds,
+                              );
                               setState(() {
                                 _selectMode = false;
                                 _selectedEntryIds.clear();
@@ -658,8 +690,10 @@ class _AllLogsScreenState extends State<AllLogsScreen> {
                     icon: Icons.delete_outline_rounded,
                     label: 'Delete',
                     fontSize: 12,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
                     foregroundColor: Colors.redAccent,
                     side: const BorderSide(color: Colors.redAccent),
                   ),

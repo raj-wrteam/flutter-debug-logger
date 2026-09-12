@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'custom_text.dart';
 import 'custom_button.dart';
 
@@ -16,16 +16,24 @@ class LogShareConfirmSheet extends StatelessWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-                color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
           const SizedBox(height: 24),
-          const Icon(Icons.delete_sweep_outlined,
-              color: Colors.orangeAccent, size: 36),
+          const Icon(
+            Icons.delete_sweep_outlined,
+            color: Colors.orangeAccent,
+            size: 36,
+          ),
           const SizedBox(height: 16),
           const CustomText(
             'Share & Clear Logs',
             style: TextStyle(
-                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 10),
           const CustomText(

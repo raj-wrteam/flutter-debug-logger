@@ -43,15 +43,15 @@ class LogEntry {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ts': timestamp.toIso8601String(),
-        'level': level.name,
-        'tag': tag.name,
-        'msg': message,
-        'sessionId': sessionId,
-        if (stackTrace != null) 'stack': stackTrace,
-        if (metadata.isNotEmpty) 'meta': metadata,
-      };
+    'id': id,
+    'ts': timestamp.toIso8601String(),
+    'level': level.name,
+    'tag': tag.name,
+    'msg': message,
+    'sessionId': sessionId,
+    if (stackTrace != null) 'stack': stackTrace,
+    if (metadata.isNotEmpty) 'meta': metadata,
+  };
 
   /// Metadata keys used internally to recover full/raw text (e.g. for copy
   /// actions) that duplicate what's already shown via [fullMessage] or a
@@ -66,7 +66,8 @@ class LogEntry {
   /// [metadata] with internal-only keys removed — use this wherever metadata
   /// is displayed or exported generically.
   Map<String, dynamic> get visibleMetadata => Map<String, dynamic>.fromEntries(
-      metadata.entries.where((e) => !_internalMetadataKeys.contains(e.key)));
+    metadata.entries.where((e) => !_internalMetadataKeys.contains(e.key)),
+  );
 
   /// The untruncated message, when [message] was shortened for display
   /// (e.g. a request/response body cut down to `maxBodyChars`). Falls back

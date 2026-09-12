@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'app_colors.dart';
 
@@ -24,9 +24,9 @@ abstract final class DebugTheme {
       surface: AppColors.elevated,
       error: Color(0xFFEF5350),
     ),
-    textTheme: Typography.material2021(platform: TargetPlatform.android)
-        .white
-        .apply(bodyColor: Colors.white, displayColor: Colors.white),
+    textTheme: Typography.material2021(
+      platform: TargetPlatform.android,
+    ).white.apply(bodyColor: Colors.white, displayColor: Colors.white),
     iconTheme: const IconThemeData(color: Colors.white70),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.surface,
